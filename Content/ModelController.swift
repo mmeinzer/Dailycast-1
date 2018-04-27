@@ -83,6 +83,17 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                     let number = Int(arc4random_uniform(2))
                     gifURLs[i] = (json["data"][number]["images"]["original"]["url"].url!) //random of 1st 3 results
                 }
+                if(i == (self.topics.count - 1)){
+                    print("prefetching")
+                    let prefetcher = ImagePrefetcher(urls: Array(gifURLs.values)) {
+                        skippedResources, failedResources, completedResources in
+                        print("Prefetched: \(completedResources.count)")
+                        print("Skipped: \(skippedResources.count)")
+                        print("Failed: \(failedResources.count)")
+                    }
+                    prefetcher.start()
+                    
+                }
             }
         }
         
@@ -96,11 +107,16 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         }
 
         // Create a new view controller and pass suitable data.
-        let dataViewController = storyboard.instantiateViewController(withIdentifier: "DataViewController") as! DataViewController
-        dataViewController.dataObject = self.topics[index]
-        dataViewController.headlineSnippet = self.headlines[index]
-        dataViewController.index = index
-        return dataViewController
+        print("index")
+        dump(index)
+        if(index != -1){
+            let dataViewController = storyboard.instantiateViewController(withIdentifier: "DataViewController") as! DataViewController
+            dataViewController.dataObject = self.topics[index]
+            dataViewController.headlineSnippet = self.headlines[index]
+            dataViewController.index = index
+            return dataViewController
+        }
+        return nil
     }
 
     func indexOfViewController(_ viewController: DataViewController) -> Int {
@@ -112,12 +128,18 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     // MARK: - Page View Controller Data Source
 
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        var index = self.indexOfViewController(viewController as! DataViewController)
-        if (index == 0) || (index == NSNotFound) {
+        var index = 0
+        if(viewController.classForCoder == DataViewController.self){
+            index = self.indexOfViewController(viewController as! DataViewController)
+        }
+        
+        if (index == 0) {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             let interestsViewController = storyboard.instantiateViewController(withIdentifier: "InterestsViewController") as! InterestsViewController
             return interestsViewController
-
+        }
+        else if(index == NSNotFound){
+            return nil
         }
         
         index -= 1

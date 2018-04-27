@@ -37,15 +37,23 @@ class DataViewController: UIViewController {
     var headlineSnippet: String = ""
     var index: Int?
 
+    var animatedView: AnimatedImageView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        backgroundImage.contentMode = .scaleAspectFill
-        backgroundImage.clipsToBounds = true
-        topLabel.text = dataObject
-        let imageColor = backgroundImage.image?.averageColor
+        
+        animatedView = AnimatedImageView(frame: view.frame)
+        animatedView.contentMode = .scaleAspectFill
+        animatedView.clipsToBounds = true
+        animatedView.layer.zPosition = 0
+        view.addSubview(animatedView)
 
-        topLabel.backgroundColor = imageColor
+        topLabel.text = dataObject
+        topLabel.layer.zPosition = 1
+        dataLabel.layer.zPosition = 1
+
+        topLabel.backgroundColor = UIColor.black
         setBackground()
     }
 
@@ -71,10 +79,10 @@ class DataViewController: UIViewController {
     func setBackground(){
         print("setting background at index \(index!)")
 
-        backgroundImage.kf.indicatorType = .activity
-        backgroundImage.kf.setImage(with: gifURLs[index!])
-        
-//        if let nextGif = gifURLs[index!+1]{
+        animatedView.kf.indicatorType = .activity
+        animatedView.kf.setImage(with: gifURLs[index!])
+
+//        if let nextGif = [gifURLs[index!+1]]{
 //            let prefetcher = ImagePrefetcher(urls: [nextGif]) {
 //                skippedResources, failedResources, completedResources in
 //                print("Prefetched: \(completedResources.count)")
@@ -83,11 +91,7 @@ class DataViewController: UIViewController {
 //            }
 //            prefetcher.start()
 //        }
-        backgroundImage.layoutIfNeeded()
-        dump(backgroundImage.image?.averageColor)
-        dump(backgroundImage.currentImage)
-        dump(backgroundImage.gifImage)
-        dump(backgroundImage.gifImage?.averageColor)
+
 
     }
 
