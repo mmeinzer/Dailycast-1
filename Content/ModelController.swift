@@ -45,7 +45,7 @@ extension String {
     }
 }
 
-var gifURLs: [Int : URL] = [0 : URL(string: "http://google.com")!] //global
+var gifURLs: [Int : [URL]] = [0 : [URL(string: "http://google.com")!, URL(string: "http://google.com")!, URL(string: "http://google.com")!]] //too hacky
 
 class ModelController: NSObject, UIPageViewControllerDataSource {
 
@@ -68,35 +68,74 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                     self.topics.append(items[i]["title"].element!.text)
                     self.headlines.append(items[i]["ht:news_item"][0]["ht:news_item_title"].element!.text.html2String)
                 }
-                self.preFetch()
+//                self.preFetch()
+                self.getImages()
+
 
             }
         }
     }
     
-    func preFetch(){
-        print("getting gif urls") //these gifs need to be more contextually aware. fix later
-        for i in 0 ... topics.count - 1{
-            Alamofire.request("https://api.giphy.com/v1/gifs/search?api_key=ZIZcdJ26TgdNjrBGCVompOfU1eYVWY8F&q=" + topics[i].addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)! + "&limit=3&offset=0&rating=PG&lang=en").responseJSON{ response in
-                if let result = response.result.value {
-                    let json = JSON(result)
-                    let number = Int(arc4random_uniform(2))
-                    gifURLs[i] = (json["data"][number]["images"]["original"]["url"].url!) //random of 1st 3 results
-                }
-                if(i == (self.topics.count - 1)){
-                    print("prefetching")
-                    let prefetcher = ImagePrefetcher(urls: Array(gifURLs.values)) {
-                        skippedResources, failedResources, completedResources in
-                        print("Prefetched: \(completedResources.count)")
-                        print("Skipped: \(skippedResources.count)")
-                        print("Failed: \(failedResources.count)")
-                    }
-                    prefetcher.start()
-                    
-                }
-            }
+//    func preFetch(){
+//        print("getting gif urls") //these gifs need to be more contextually aware. fix later
+//        for i in 0 ... topics.count - 1{
+//            Alamofire.request("https://api.giphy.com/v1/gifs/search?api_key=ZIZcdJ26TgdNjrBGCVompOfU1eYVWY8F&q=" + topics[i].addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)! + "&limit=3&offset=0&rating=PG&lang=en").responseJSON{ response in
+//                if let result = response.result.value {
+//                    let json = JSON(result)
+//                    let number = Int(arc4random_uniform(2))
+//                    gifURLs[i] = (json["data"][number]["images"]["original"]["url"].url!) //random of 1st 3 results
+//                }
+//                if(i == (self.topics.count - 1)){
+//                    print("prefetching")
+//                    let prefetcher = ImagePrefetcher(urls: Array(gifURLs.values)) {
+//                        skippedResources, failedResources, completedResources in
+//                        print("Prefetched: \(completedResources.count)")
+//                        print("Skipped: \(skippedResources.count)")
+//                        print("Failed: \(failedResources.count)")
+//                    }
+//                    prefetcher.start()
+//
+//                }
+//            }
+//        }
+//    }
+    
+    func getContent(){
+        for i in 0 ... topics.count - 1 {
         }
+    }
+    
+    func getImages(){
         
+        let apiKey = "AIzaSyAwG_zIKyIoLmjt1TJgu9bYiH1is0cgWaI"
+        let bundleId = "com.somdede.Dailycast"
+        let searchEngineId = "015725297922873992557:4jqtvjbjmqc"
+        let searchType = "image"
+        
+        for i in 0 ... topics.count - 1 {
+            let serverAddress = String(format: "https://www.googleapis.com/customsearch/v1?q=%@&cx=%@&key=%@&searchType=%@&num=%@&safe=%@&imgSize=%@&imgType=%@",self.topics[i] ,searchEngineId, apiKey, searchType, "3", "medium", "large", "photo")
+            
+            dump(serverAddress)
+            let url = serverAddress.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+            let finalUrl = URL(string: url!)
+            let request = NSMutableURLRequest(url: finalUrl!, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 10)
+            request.httpMethod = "GET"
+            request.setValue(bundleId, forHTTPHeaderField: "X-Ios-Bundle-Identifier")
+            
+            let session = URLSession.shared
+            
+            let datatask = session.dataTask(with: request as URLRequest) { (data, response, error) in
+                let json = JSON(data)
+                var urlArray: [URL] = []
+                urlArray.append(json["items"][0]["link"].url!)
+                urlArray.append(json["items"][1]["link"].url!)
+                urlArray.append(json["items"][2]["link"].url!)
+                gifURLs[i] = urlArray
+                print("set array for \(i)")
+            }
+            datatask.resume()
+        }
+
     }
     
 
