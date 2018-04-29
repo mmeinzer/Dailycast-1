@@ -25,7 +25,7 @@ class DataViewController: UIViewController {
     
 
     var animatedView: UIImageView!
-    var swipeUp = UISwipeGestureRecognizer!
+    var swipeUp: UISwipeGestureRecognizer!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,12 +45,14 @@ class DataViewController: UIViewController {
         topLabel.backgroundColor = UIColor.black
         
         swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(swipedAction))
+        swipeUp.direction = .up
+        view.addGestureRecognizer(swipeUp)
         
         setBackground()
     }
     
-    func swipedAction(){
-        
+    @objc func swipedAction(){
+        print("swipe")
     }
 
     override func didReceiveMemoryWarning() {
