@@ -52,6 +52,8 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     
     var topics: [String] = ["one"]
     var headlines: [String] = ["first"]
+    var urls: [URL] = [URL(string: "http://google.com")!]
+    var arrayLoaded = false
 
     override init() {
         super.init()
@@ -67,6 +69,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                 for i in 0 ... items.all.count - 1{
                     self.topics.append(items[i]["title"].element!.text)
                     self.headlines.append(items[i]["ht:news_item"][0]["ht:news_item_title"].element!.text.html2String)
+                    self.urls.append(URL(string: items[i]["ht:news_item"][0]["ht:news_item_url"].element!.text)!)
                 }
 //                self.preFetch()
                 self.getImages()
@@ -132,11 +135,21 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                 urlArray.append(json["items"][2]["link"].url!)
                 gifURLs[i] = urlArray
                 print("set array for \(i)")
+                if(i == 1){
+                    print("setting array loaded")
+                    self.arrayLoaded = true //once 1 is loaded, let the user advance
+                    let nc = NotificationCenter.default
+                    DispatchQueue.main.async() {
+                        nc.post(name: Notification.Name("resetCache"), object: nil)
+                    }
+                }
             }
             datatask.resume()
         }
 
     }
+    
+    
     
 
     func viewControllerAtIndex(_ index: Int, storyboard: UIStoryboard) -> DataViewController? {
@@ -152,6 +165,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
             let dataViewController = storyboard.instantiateViewController(withIdentifier: "DataViewController") as! DataViewController
             dataViewController.dataObject = self.topics[index]
             dataViewController.headlineSnippet = self.headlines[index]
+            dataViewController.articleURL = self.urls[index]
             dataViewController.index = index
             return dataViewController
         }
@@ -172,12 +186,15 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
             index = self.indexOfViewController(viewController as! DataViewController)
         }
         
-        if (index == 0) {
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let interestsViewController = storyboard.instantiateViewController(withIdentifier: "InterestsViewController") as! InterestsViewController
-            return interestsViewController
-        }
-        else if(index == NSNotFound){
+//        if (index == 0) {
+//            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+//            let interestsViewController = storyboard.instantiateViewController(withIdentifier: "InterestsViewController") as! InterestsViewController
+//            return interestsViewController
+//        }
+//        else if(index == NSNotFound){
+//            return nil
+//        }
+        if(index == NSNotFound){
             return nil
         }
         
@@ -186,8 +203,9 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     }
 
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+        print("view after")
         var index = self.indexOfViewController(viewController as! DataViewController)
-        if index == NSNotFound {
+        if (index == NSNotFound || arrayLoaded == false) {
             return nil
         }
         
@@ -197,6 +215,6 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         }
         return self.viewControllerAtIndex(index, storyboard: viewController.storyboard!)
     }
-
+    
 }
 

@@ -153,6 +153,40 @@
             </objects>
             <point key="canvasLocation" x="596" y="-243.32833583208398"/>
         </scene>
+        <!--Article View Controller-->
+        <scene sceneID="9IZ-Ml-ULp">
+            <objects>
+                <viewController storyboardIdentifier="ArticleViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="LaC-Pz-c3X" customClass="ArticleViewController" customModule="Dailycast" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="DIe-o4-6ma">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <wkWebView contentMode="scaleToFill" allowsBackForwardNavigationGestures="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xvC-Oc-OhM">
+                                <rect key="frame" x="0.0" y="20" width="375" height="647"/>
+                                <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <wkWebViewConfiguration key="configuration">
+                                    <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
+                                    <wkPreferences key="preferences"/>
+                                </wkWebViewConfiguration>
+                            </wkWebView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="xvC-Oc-OhM" firstAttribute="trailing" secondItem="YC5-6G-r8n" secondAttribute="trailing" id="SgP-Vo-GPL"/>
+                            <constraint firstItem="xvC-Oc-OhM" firstAttribute="leading" secondItem="YC5-6G-r8n" secondAttribute="leading" id="ctL-Ua-OH4"/>
+                            <constraint firstItem="xvC-Oc-OhM" firstAttribute="bottom" secondItem="YC5-6G-r8n" secondAttribute="bottom" id="dJ5-GZ-7ax"/>
+                            <constraint firstItem="xvC-Oc-OhM" firstAttribute="top" secondItem="YC5-6G-r8n" secondAttribute="top" id="yZc-zr-uN1"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="YC5-6G-r8n"/>
+                    </view>
+                    <connections>
+                        <outlet property="webView" destination="xvC-Oc-OhM" id="ohz-6H-j3U"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="W6P-hU-A7Y" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="565.60000000000002" y="448.42578710644682"/>
+        </scene>
     </scenes>
     <resources>
         <image name="arrow" width="43" height="25"/>

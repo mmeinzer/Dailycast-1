@@ -37,6 +37,10 @@ class RootViewController: UIViewController, UIPageViewControllerDelegate {
         self.pageViewController!.view.frame = pageViewRect
 
         self.pageViewController!.didMove(toParentViewController: self)
+        
+        let nc = NotificationCenter.default
+        nc.addObserver(self, selector: #selector(resetCache), name: Notification.Name("resetCache"), object: nil)
+
     }
 
     override func didReceiveMemoryWarning() {
@@ -54,6 +58,12 @@ class RootViewController: UIViewController, UIPageViewControllerDelegate {
     }
 
     var _modelController: ModelController? = nil
+    
+    @objc func resetCache(){
+        print("reset cache")
+        self.pageViewController?.dataSource = nil;
+        self.pageViewController?.dataSource = self.modelController; //clear cache
+    }
 
     // MARK: - UIPageViewController delegate methods
 

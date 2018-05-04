@@ -11,7 +11,7 @@ import Alamofire
 import SwiftyJSON
 import SwiftyGif
 import Kingfisher
-
+import SafariServices
 
 class DataViewController: UIViewController {
 
@@ -21,11 +21,13 @@ class DataViewController: UIViewController {
     @IBOutlet weak var dataLabel: UILabel!
     var dataObject: String = ""
     var headlineSnippet: String = ""
+    var articleURL: URL?
     var index: Int?
     
 
     var animatedView: UIImageView!
     var swipeUp: UISwipeGestureRecognizer!
+    var spinner: UIActivityIndicatorView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,11 +50,29 @@ class DataViewController: UIViewController {
         swipeUp.direction = .up
         view.addGestureRecognizer(swipeUp)
         
+        spinner = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+        spinner.isHidden = true
+        
         setBackground()
+        
+        
+        let nc = NotificationCenter.default
+        nc.addObserver(self, selector: #selector(clearActivity), name: Notification.Name("resetCache"), object: nil)
+
     }
     
     @objc func swipedAction(){
         print("swipe")
+//        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+//        let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
+//        articleViewController.url = articleURL
+//        self.present(articleViewController, animated: true)
+        let urlString = "http://www.google.com"
+        let url = URL(string: urlString)!
+        let config = SFSafariViewController.Configuration()
+        config.entersReaderIfAvailable = true
+        let safariVC = SFSafariViewController(url: url, configuration: config)
+        present(safariVC, animated: true, completion: nil)
     }
 
     override func didReceiveMemoryWarning() {
@@ -84,31 +104,70 @@ class DataViewController: UIViewController {
         prefetcher.start()
     }
     
+    @objc func clearActivity(){
+        spinner.stopAnimating()
+        spinner.isHidden = true
+        let labelFrame = CGRect(x: 0, y: self.view.frame.maxY - 48, width: self.view.frame.width, height: 28)
+        let label = UILabel(frame: labelFrame)
+        label.text = "Swipe 👉"
+        label.textAlignment = .center
+        label.font = UIFont(name: "HelveticaNeue-MediumItalic", size: 28.0)
+        label.textColor = UIColor.white
+        self.view.addSubview(label)
+        
+    }
     
     func setBackground(){
         print("setting background at index \(index!)")
 
-        animatedView.kf.indicatorType = .activity
-        let imageArray = gifURLs[index!]
+        if(index == 0){
+            print("first index")
+            topLabel.text = "Dailycast"
+            dataLabel.isHidden = true
+            arrowImage.isHidden = true
+            
+            spinner.isHidden = false
+            spinner.center = CGPoint(x: self.view.frame.midX, y: self.view.frame.maxY - 32)
+            spinner.startAnimating()
+            self.view.addSubview(spinner)
+            
+            let date = Date()
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE, MMM d, yyyy"
+            let result = formatter.string(from: date)
 
-        animatedView.kf.setImage(with: imageArray?[0])
-        preFetch(array: imageArray!)
+            
+            let dateFrame = CGRect(x: topLabel.frame.minX, y: topLabel.frame.maxY+30, width: self.view.frame.width, height: CGFloat(21.0))
+            let dateLabel = UILabel(frame: dateFrame)
+            dateLabel.text = result
+            dateLabel.font = UIFont(name: "HelveticaNeue-Italic", size: 18.0)
+            dateLabel.textAlignment = .center
+            dateLabel.textColor = UIColor.white
+            
+            self.view.addSubview(dateLabel)
+            
 
-        var i = 0
-        let timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { (timer) in
-            print("timer")
-            i += 1
-            if(i == 3){ i = 0 }
-
-            self.animatedView.kf.setImage(with: imageArray?[i], options: [.onlyFromCache])
         }
-        RunLoop.current.add(timer, forMode: .commonModes)
+        else{
+            animatedView.kf.indicatorType = .activity
+            let imageArray = gifURLs[index!]
 
+            animatedView.kf.setImage(with: imageArray?[0])
+            preFetch(array: imageArray!)
 
+            var i = 0
+            let timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { (timer) in
+                print("timer")
+                i += 1
+                if(i == 3){ i = 0 }
 
-
+                self.animatedView.kf.setImage(with: imageArray?[i], options: [.onlyFromCache])
+            }
+            RunLoop.current.add(timer, forMode: .commonModes)
+        }
 
     }
+
 
 
 }
