@@ -95,6 +95,9 @@ class RootViewController: UIViewController, UIPageViewControllerDelegate {
         return .mid
     }
 
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
 
 }
 

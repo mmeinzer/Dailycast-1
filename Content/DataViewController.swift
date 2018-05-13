@@ -9,7 +9,6 @@
 import UIKit
 import Alamofire
 import SwiftyJSON
-import SwiftyGif
 import Kingfisher
 import SafariServices
 
@@ -17,15 +16,17 @@ class DataViewController: UIViewController {
 
     @IBOutlet weak var arrowImage: UIImageView!
     @IBOutlet weak var topLabel: UILabel!
-    @IBOutlet weak var backgroundImage: UIImageView!
     @IBOutlet weak var dataLabel: UILabel!
     var dataObject: String = ""
     var headlineSnippet: String = ""
     var articleURL: URL?
     var index: Int?
+    @IBOutlet weak var bgView: UIView!
+    @IBOutlet weak var topView: UIView!
+    @IBOutlet weak var topText: UILabel!
     
 
-    var animatedView: UIImageView!
+    var imageView: UIImageView!
     var swipeUp: UISwipeGestureRecognizer!
     var spinner: UIActivityIndicatorView!
     
@@ -33,14 +34,12 @@ class DataViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        animatedView = UIImageView(frame: view.frame)
-        animatedView.contentMode = .scaleAspectFill
-        animatedView.clipsToBounds = true
-        animatedView.layer.zPosition = 0
-        view.addSubview(animatedView)
+        imageView = UIImageView(frame: view.frame)
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.zPosition = 0
+        view.addSubview(imageView)
 
-        topLabel.text = dataObject
-        topLabel.layer.zPosition = 1
         dataLabel.layer.zPosition = 1
         arrowImage.layer.zPosition = 1
 
@@ -58,21 +57,24 @@ class DataViewController: UIViewController {
         
         let nc = NotificationCenter.default
         nc.addObserver(self, selector: #selector(clearActivity), name: Notification.Name("resetCache"), object: nil)
+        
+        bgView.layer.cornerRadius = 4
+        bgView.layer.zPosition = 1
+        topView.layer.cornerRadius = 2
+        topView.layer.zPosition = 1
 
     }
     
     @objc func swipedAction(){
         print("swipe")
-//        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-//        let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
-//        articleViewController.url = articleURL
-//        self.present(articleViewController, animated: true)
-        let urlString = "http://www.google.com"
-        let url = URL(string: urlString)!
-        let config = SFSafariViewController.Configuration()
-        config.entersReaderIfAvailable = true
-        let safariVC = SFSafariViewController(url: url, configuration: config)
-        present(safariVC, animated: true, completion: nil)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
+        articleViewController.url = articleURL
+        self.present(articleViewController, animated: true)
+//        let config = SFSafariViewController.Configuration()
+//        config.entersReaderIfAvailable = true
+//        let safariVC = SFSafariViewController(url: articleURL!, configuration: config)
+//        present(safariVC, animated: true, completion: nil)
     }
 
     override func didReceiveMemoryWarning() {
@@ -93,16 +95,6 @@ class DataViewController: UIViewController {
     }
     
     
-    func preFetch(array: [URL]){
-        print("prefetching")
-        let prefetcher = ImagePrefetcher(urls: array) {
-            skippedResources, failedResources, completedResources in
-            print("Prefetched: \(completedResources.count)")
-            print("Skipped: \(skippedResources.count)")
-            print("Failed: \(failedResources.count)")
-        }
-        prefetcher.start()
-    }
     
     @objc func clearActivity(){
         spinner.stopAnimating()
@@ -118,13 +110,12 @@ class DataViewController: UIViewController {
     }
     
     func setBackground(){
-        print("setting background at index \(index!)")
-
         if(index == 0){
             print("first index")
             topLabel.text = "Dailycast"
             dataLabel.isHidden = true
             arrowImage.isHidden = true
+            topView.isHidden = true
             
             spinner.isHidden = false
             spinner.center = CGPoint(x: self.view.frame.midX, y: self.view.frame.maxY - 32)
@@ -135,7 +126,7 @@ class DataViewController: UIViewController {
             let formatter = DateFormatter()
             formatter.dateFormat = "EEEE, MMM d, yyyy"
             let result = formatter.string(from: date)
-
+            bgView.isHidden = true
             
             let dateFrame = CGRect(x: topLabel.frame.minX, y: topLabel.frame.maxY+30, width: self.view.frame.width, height: CGFloat(21.0))
             let dateLabel = UILabel(frame: dateFrame)
@@ -149,26 +140,82 @@ class DataViewController: UIViewController {
 
         }
         else{
-            animatedView.kf.indicatorType = .activity
-            let imageArray = gifURLs[index!]
-
-            animatedView.kf.setImage(with: imageArray?[0])
-            preFetch(array: imageArray!)
-
-            var i = 0
-            let timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { (timer) in
-                print("timer")
-                i += 1
-                if(i == 3){ i = 0 }
-
-                self.animatedView.kf.setImage(with: imageArray?[i], options: [.onlyFromCache])
+            topLabel.isHidden = true
+            imageView.kf.indicatorType = .activity
+            let string = articleURL!.absoluteString
+            let sindex = string.range(of: "/", options: .backwards)?.upperBound
+            let title = string.substring(from: sindex!).replacingOccurrences(of: "_", with: "%20")
+            
+            Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=pageviews&format=json").response{ response in
+                if let data = response.data{
+                    print("pv url")
+                    print("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=pageviews&format=json")
+                    let json = JSON(data)
+                    let dict = json["query"]["pages"].dictionaryValue
+                    let pageid: String = String(describing: dict.keys.first!)
+                    let yesterdayDate = Calendar.current.date(byAdding: .day, value: -2, to: Date())
+                    let yesterdayFormatter = DateFormatter()
+                    yesterdayFormatter.dateFormat = "yyyy-MM-dd"
+                    let yesterday = yesterdayFormatter.string(from: yesterdayDate!)
+                    let pageviews = json["query"]["pages"][pageid]["pageviews"][yesterday]
+                    DispatchQueue.main.async() {
+                        self.topText.text = String(describing: pageviews) + " views"
+                    }
+                }
             }
-            RunLoop.current.add(timer, forMode: .commonModes)
+
+            
+            Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=pageimages&format=json&piprop=original").response{ response in
+                if let data = response.data{
+                    let json = JSON(data)
+                    let dict = json["query"]["pages"].dictionaryValue
+                    let pageid: String = String(describing: dict.keys.first!)
+                    print(pageid)
+                    let image = json["query"]["pages"][pageid]["original"]["source"]
+                    dump(image.string)
+                    DispatchQueue.main.async() {
+                        if(image.string != nil){
+                            print("SETTING IMAGE AT ")
+                            dump(title)
+                            self.imageView.kf.setImage(with: image.url!)
+                        }
+                        else{
+                            self.backgroundAttempt2(title: title)
+                        }
+                    }
+                }
+            }
         }
 
     }
-
-
+    
+    func backgroundAttempt2(title: String){
+        print("attempting the background again")
+        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=images&format=json&piprop=original").response{ response in
+            if let data = response.data{
+                let json = JSON(data)
+                let dict = json["query"]["pages"].dictionaryValue
+                let pageid: String = String(describing: dict.keys.first!)
+                let image = json["query"]["pages"][pageid]["images"][0]["title"].string!.replacingOccurrences(of: "File:", with: "")
+                let imagepath = "https://commons.wikimedia.org/wiki/Special:FilePath/" + image
+                dump(imagepath)
+                DispatchQueue.main.async() {
+                    if(imagepath != nil){
+                        print("SETTING IMAGE AGAIN AT ")
+                        print(imagepath)
+                        self.imageView.kf.setImage(with: URL(string: imagepath))
+                    }
+                }
+            }
+        }
+    }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
 
 }
 

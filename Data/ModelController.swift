@@ -18,9 +18,9 @@ import UIKit
  */
 
 import Alamofire
-import SWXMLHash
 import Kingfisher
 import SwiftyJSON
+import SwiftSoup
 
 extension Data {
     var html2AttributedString: NSAttributedString? {
@@ -45,7 +45,6 @@ extension String {
     }
 }
 
-var gifURLs: [Int : [URL]] = [0 : [URL(string: "http://google.com")!, URL(string: "http://google.com")!, URL(string: "http://google.com")!]] //too hacky
 
 class ModelController: NSObject, UIPageViewControllerDataSource {
 
@@ -62,93 +61,43 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     
     
     func getHeadlines(){
-        Alamofire.request("https://trends.google.com/trends/hottrends/atom/feed?pn=p1").response{ response in
+        Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Template:In_the_news").response{ response in
             if let data = response.data{
-                let xml = SWXMLHash.parse(data)
-                let items = xml["rss"]["channel"]["item"]
-                for i in 0 ... items.all.count - 1{
-                    self.topics.append(items[i]["title"].element!.text)
-                    self.headlines.append(items[i]["ht:news_item"][0]["ht:news_item_title"].element!.text.html2String)
-                    self.urls.append(URL(string: items[i]["ht:news_item"][0]["ht:news_item_url"].element!.text)!)
-                }
-//                self.preFetch()
-                self.getImages()
-
-
-            }
-        }
-    }
-    
-//    func preFetch(){
-//        print("getting gif urls") //these gifs need to be more contextually aware. fix later
-//        for i in 0 ... topics.count - 1{
-//            Alamofire.request("https://api.giphy.com/v1/gifs/search?api_key=ZIZcdJ26TgdNjrBGCVompOfU1eYVWY8F&q=" + topics[i].addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)! + "&limit=3&offset=0&rating=PG&lang=en").responseJSON{ response in
-//                if let result = response.result.value {
-//                    let json = JSON(result)
-//                    let number = Int(arc4random_uniform(2))
-//                    gifURLs[i] = (json["data"][number]["images"]["original"]["url"].url!) //random of 1st 3 results
-//                }
-//                if(i == (self.topics.count - 1)){
-//                    print("prefetching")
-//                    let prefetcher = ImagePrefetcher(urls: Array(gifURLs.values)) {
-//                        skippedResources, failedResources, completedResources in
-//                        print("Prefetched: \(completedResources.count)")
-//                        print("Skipped: \(skippedResources.count)")
-//                        print("Failed: \(failedResources.count)")
-//                    }
-//                    prefetcher.start()
-//
-//                }
-//            }
-//        }
-//    }
-    
-    func getContent(){
-        for i in 0 ... topics.count - 1 {
-        }
-    }
-    
-    func getImages(){
-        
-        let apiKey = "AIzaSyAwG_zIKyIoLmjt1TJgu9bYiH1is0cgWaI"
-        let bundleId = "com.somdede.Dailycast"
-        let searchEngineId = "015725297922873992557:4jqtvjbjmqc"
-        let searchType = "image"
-        
-        for i in 0 ... topics.count - 1 {
-            let serverAddress = String(format: "https://www.googleapis.com/customsearch/v1?q=%@&cx=%@&key=%@&searchType=%@&num=%@&safe=%@&imgSize=%@&imgType=%@",self.topics[i] ,searchEngineId, apiKey, searchType, "3", "medium", "large", "photo")
-            
-            dump(serverAddress)
-            let url = serverAddress.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-            let finalUrl = URL(string: url!)
-            let request = NSMutableURLRequest(url: finalUrl!, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 10)
-            request.httpMethod = "GET"
-            request.setValue(bundleId, forHTTPHeaderField: "X-Ios-Bundle-Identifier")
-            
-            let session = URLSession.shared
-            
-            let datatask = session.dataTask(with: request as URLRequest) { (data, response, error) in
                 let json = JSON(data)
-                var urlArray: [URL] = []
-                urlArray.append(json["items"][0]["link"].url!)
-                urlArray.append(json["items"][1]["link"].url!)
-                urlArray.append(json["items"][2]["link"].url!)
-                gifURLs[i] = urlArray
-                print("set array for \(i)")
-                if(i == 1){
-                    print("setting array loaded")
-                    self.arrayLoaded = true //once 1 is loaded, let the user advance
-                    let nc = NotificationCenter.default
-                    DispatchQueue.main.async() {
-                        nc.post(name: Notification.Name("resetCache"), object: nil)
+                let fullhtml = json["parse"]["text"]["*"].string!
+                let separator = """
+                <div class=\"itn-footer\"
+                """
+                let html = fullhtml.components(separatedBy: separator)[0]
+                do{
+                    let doc: Document = try! SwiftSoup.parse(html)
+                    let li: Elements = try doc.select("li")
+                    for element in li.array(){
+                        print("LI IS HERE")
+                        self.headlines.append(try element.text())
+                        let bold = try element.select("b")
+                        self.topics.append(try bold.text())
+                        let link = try bold.select("a")
+                        let url = try link.attr("href")
+                        self.urls.append(URL(string: "https://en.wikipedia.org" + url)!)
                     }
-                }
-            }
-            datatask.resume()
-        }
 
+                }
+                catch Exception.Error(let type, let message) {
+                    print(message)
+                } catch {
+                    print("error")
+                }
+                
+                self.arrayLoaded=true
+                let nc = NotificationCenter.default
+                DispatchQueue.main.async() {
+                    nc.post(name: Notification.Name("resetCache"), object: nil)
+                }
+
+            }
+        }
     }
-    
     
     
 
@@ -159,8 +108,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         }
 
         // Create a new view controller and pass suitable data.
-        print("index")
-        dump(index)
+
         if(index != -1){
             let dataViewController = storyboard.instantiateViewController(withIdentifier: "DataViewController") as! DataViewController
             dataViewController.dataObject = self.topics[index]
@@ -194,6 +142,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
 //        else if(index == NSNotFound){
 //            return nil
 //        }
+
         if(index == NSNotFound){
             return nil
         }
@@ -203,16 +152,24 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     }
 
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        print("view after")
-        var index = self.indexOfViewController(viewController as! DataViewController)
+        var index = topics.count
+        if(viewController.classForCoder == DataViewController.self){
+            index = self.indexOfViewController(viewController as! DataViewController)
+        }
         if (index == NSNotFound || arrayLoaded == false) {
             return nil
         }
         
         index += 1
         if index == self.topics.count {
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            let doneViewController = storyboard.instantiateViewController(withIdentifier: "DoneViewController") as! DoneViewController
+            return doneViewController
+        }
+        else if index == self.topics.count + 1{
             return nil
         }
+
         return self.viewControllerAtIndex(index, storyboard: viewController.storyboard!)
     }
     
