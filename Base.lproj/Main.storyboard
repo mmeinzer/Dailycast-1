@@ -158,6 +158,12 @@
                                     <constraint firstAttribute="trailing" secondItem="co6-e1-2DM" secondAttribute="trailing" constant="8" id="y0J-m3-gsO"/>
                                 </constraints>
                             </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HYT-ug-w9u">
+                                <rect key="frame" x="0.0" y="138" width="375" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -165,10 +171,13 @@
                             <constraint firstItem="9AW-t8-dZH" firstAttribute="leading" secondItem="K9I-jD-KjA" secondAttribute="leading" constant="16" id="8Tx-Ug-Mzk"/>
                             <constraint firstItem="W6y-BS-fAJ" firstAttribute="top" secondItem="9AW-t8-dZH" secondAttribute="bottom" constant="24" id="Jn2-rr-kEi"/>
                             <constraint firstItem="Isw-NV-MAj" firstAttribute="top" secondItem="K9I-jD-KjA" secondAttribute="top" constant="16" id="N2E-Pm-0aS"/>
+                            <constraint firstItem="HYT-ug-w9u" firstAttribute="top" secondItem="q9G-Po-dSl" secondAttribute="bottom" constant="30" id="Ncu-Nk-Rng"/>
                             <constraint firstItem="q9G-Po-dSl" firstAttribute="leading" secondItem="K9I-jD-KjA" secondAttribute="leading" id="TbA-ac-EYP"/>
                             <constraint firstItem="q9G-Po-dSl" firstAttribute="top" secondItem="K9I-jD-KjA" secondAttribute="top" constant="18" id="bJY-Mg-89U"/>
+                            <constraint firstItem="K9I-jD-KjA" firstAttribute="trailing" secondItem="HYT-ug-w9u" secondAttribute="trailing" id="e7X-7E-6cz"/>
                             <constraint firstItem="K9I-jD-KjA" firstAttribute="trailing" secondItem="q9G-Po-dSl" secondAttribute="trailing" id="eMd-dK-xI3"/>
                             <constraint firstItem="W6y-BS-fAJ" firstAttribute="centerX" secondItem="ZwX-cT-FIQ" secondAttribute="centerX" id="frm-Ev-Ues"/>
+                            <constraint firstItem="HYT-ug-w9u" firstAttribute="leading" secondItem="K9I-jD-KjA" secondAttribute="leading" id="jrp-bM-6Rk"/>
                             <constraint firstItem="K9I-jD-KjA" firstAttribute="trailing" secondItem="Isw-NV-MAj" secondAttribute="trailing" constant="16" id="kZg-e9-SmY"/>
                             <constraint firstItem="K9I-jD-KjA" firstAttribute="trailing" secondItem="9AW-t8-dZH" secondAttribute="trailing" constant="16" id="rN6-SM-0zH"/>
                         </constraints>
@@ -178,6 +187,7 @@
                         <outlet property="arrowImage" destination="W6y-BS-fAJ" id="AyL-cW-PyM"/>
                         <outlet property="bgView" destination="9AW-t8-dZH" id="GUx-1R-tCz"/>
                         <outlet property="dataLabel" destination="cF2-Le-7mQ" id="3EH-BK-JV6"/>
+                        <outlet property="dateLabel" destination="HYT-ug-w9u" id="cUy-xz-iq0"/>
                         <outlet property="topLabel" destination="q9G-Po-dSl" id="h7Q-mt-eut"/>
                         <outlet property="topText" destination="co6-e1-2DM" id="CZp-oT-9zG"/>
                         <outlet property="topView" destination="Isw-NV-MAj" id="AII-RA-g9v"/>
@@ -255,32 +265,36 @@
                             <navigationBar contentMode="scaleToFill" translucent="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cfq-9p-2Ea">
                                 <rect key="frame" x="0.0" y="20" width="375" height="44"/>
                                 <items>
-                                    <navigationItem title="Title" id="YoO-N1-b44">
-                                        <barButtonItem key="rightBarButtonItem" systemItem="done" id="6TH-vx-HHS">
-                                            <connections>
-                                                <action selector="doneButton:" destination="LaC-Pz-c3X" id="qFD-Jy-XBj"/>
-                                            </connections>
-                                        </barButtonItem>
-                                    </navigationItem>
+                                    <navigationItem title="Title" id="YoO-N1-b44"/>
                                 </items>
                             </navigationBar>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="47s-Fp-w1d">
+                                <rect key="frame" x="0.0" y="64" width="375" height="4"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="4" id="3AQ-Kx-ieb"/>
+                                </constraints>
+                            </progressView>
                         </subviews>
                         <color key="backgroundColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstAttribute="trailing" secondItem="47s-Fp-w1d" secondAttribute="trailing" id="4L9-Iq-V6s"/>
                             <constraint firstItem="cfq-9p-2Ea" firstAttribute="trailing" secondItem="YC5-6G-r8n" secondAttribute="trailing" id="4Us-Xb-CEj"/>
                             <constraint firstItem="cfq-9p-2Ea" firstAttribute="top" secondItem="YC5-6G-r8n" secondAttribute="top" id="8wZ-gF-oIs"/>
                             <constraint firstItem="cfq-9p-2Ea" firstAttribute="leading" secondItem="YC5-6G-r8n" secondAttribute="leading" id="CA0-0d-PB4"/>
+                            <constraint firstItem="47s-Fp-w1d" firstAttribute="top" secondItem="cfq-9p-2Ea" secondAttribute="bottom" id="Dlp-gu-VqU"/>
                             <constraint firstItem="xvC-Oc-OhM" firstAttribute="trailing" secondItem="YC5-6G-r8n" secondAttribute="trailing" id="SgP-Vo-GPL"/>
                             <constraint firstItem="YC5-6G-r8n" firstAttribute="bottom" secondItem="cfq-9p-2Ea" secondAttribute="bottom" constant="603" id="UzY-2F-imC"/>
                             <constraint firstItem="xvC-Oc-OhM" firstAttribute="leading" secondItem="YC5-6G-r8n" secondAttribute="leading" id="ctL-Ua-OH4"/>
                             <constraint firstItem="xvC-Oc-OhM" firstAttribute="bottom" secondItem="YC5-6G-r8n" secondAttribute="bottom" id="dJ5-GZ-7ax"/>
                             <constraint firstItem="xvC-Oc-OhM" firstAttribute="top" secondItem="cfq-9p-2Ea" secondAttribute="bottom" id="lBO-Kc-8kC"/>
+                            <constraint firstItem="47s-Fp-w1d" firstAttribute="leading" secondItem="DIe-o4-6ma" secondAttribute="leading" id="yZE-05-RUW"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="YC5-6G-r8n"/>
                     </view>
                     <connections>
                         <outlet property="navBar" destination="cfq-9p-2Ea" id="ZCs-fO-0Dm"/>
                         <outlet property="pageTitle" destination="YoO-N1-b44" id="bvX-zH-qGx"/>
+                        <outlet property="progressView" destination="47s-Fp-w1d" id="Kv8-fF-rOs"/>
                         <outlet property="webView" destination="xvC-Oc-OhM" id="ohz-6H-j3U"/>
                     </connections>
                 </viewController>
