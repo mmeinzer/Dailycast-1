@@ -60,52 +60,14 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     }
     
     
-//    func getHeadlines(){
-//        Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Template:In_the_news").response{ response in
-//            if let data = response.data{
-//                let json = JSON(data)
-//                let fullhtml = json["parse"]["text"]["*"].string!
-//                let separator = """
-//                <div class=\"itn-footer\"
-//                """
-//                let html = fullhtml.components(separatedBy: separator)[0]
-//                do{
-//                    let doc: Document = try! SwiftSoup.parse(html)
-//                    let li: Elements = try doc.select("li")
-//                    for element in li.array(){
-//                        print("LI IS HERE")
-//                        self.headlines.append(try element.text())
-//                        let bold = try element.select("b")
-//                        self.topics.append(try bold.text())
-//                        let link = try bold.select("a")
-//                        let url = try link.attr("href")
-//                        self.urls.append(URL(string: "https://en.wikipedia.org" + url)!)
-//                    }
-//
-//                }
-//                catch Exception.Error(let type, let message) {
-//                    print(message)
-//                } catch {
-//                    print("error")
-//                }
-//
-//                self.arrayLoaded=true
-//                let nc = NotificationCenter.default
-//                DispatchQueue.main.async() {
-//                    nc.post(name: Notification.Name("resetCache"), object: nil)
-//                }
-//
-//            }
-//        }
-//    }
     
     func getHeadlines(){
         
         let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy_MMM_dd"
-//        let result = formatter.string(from: date)
-        let result = "2018_May_16"
+        let result = formatter.string(from: date)
+//        let result = "2018_May_16"
         Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Portal:Current_events/" + result).response{ response in
             if let data = response.data{
                 let json = JSON(data)

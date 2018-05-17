@@ -10,9 +10,10 @@ import Foundation
 import UIKit
 import WebKit
 import SafariServices
+import TUSafariActivity
 
 
-class ArticleViewController: UIViewController, WKNavigationDelegate {
+class ArticleViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
     
     @IBOutlet weak var navBar: UINavigationBar!
     @IBOutlet weak var webView: WKWebView!
@@ -20,6 +21,7 @@ class ArticleViewController: UIViewController, WKNavigationDelegate {
     @IBOutlet weak var pageTitle: UINavigationItem!
     @IBOutlet weak var progressView: UIProgressView!
     @IBOutlet weak var leftButton: UIBarButtonItem!
+    @IBOutlet weak var progressHeight: NSLayoutConstraint!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,6 +30,7 @@ class ArticleViewController: UIViewController, WKNavigationDelegate {
         webView.load(URLRequest(url: url!))
         webView.layer.zPosition = 0
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
+        webView.scrollView.delegate = self
         navBar.barStyle = .default
         
         pageTitle.title = url?.host
@@ -39,6 +42,10 @@ class ArticleViewController: UIViewController, WKNavigationDelegate {
         
         pageTitle.setLeftBarButton(UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: self, action: #selector(backTapped)), animated: true)
 
+        let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(screenEdgeSwiped))
+        edgePan.edges = .left
+        
+        view.addGestureRecognizer(edgePan)
         
     }
 
@@ -50,6 +57,14 @@ class ArticleViewController: UIViewController, WKNavigationDelegate {
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         progressView.isHidden = false
     }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        print(scrollView.contentOffset.y)
+        if(scrollView.contentOffset.y >= 0){
+            progressHeight.constant = 4 - scrollView.contentOffset.y
+        }
+    }
+    
 
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -64,11 +79,12 @@ class ArticleViewController: UIViewController, WKNavigationDelegate {
     }
     
     @objc func shareTapped(_ sender : UIBarButtonItem){
-            let firstActivityItem = "Check out this article I read on Dailycast"
-            let secondActivityItem : NSURL = NSURL(string: String(describing: url))!
+        
+            let text = "Check out this article I read on Dailycast"
+
     
             let activityViewController : UIActivityViewController = UIActivityViewController(
-                activityItems: [firstActivityItem, secondActivityItem], applicationActivities: nil)
+                activityItems: [text, url], applicationActivities: [TUSafariActivity()])
     
             // This lines is for the popover you need to show in iPad
             activityViewController.popoverPresentationController?.barButtonItem = sender
@@ -89,6 +105,12 @@ class ArticleViewController: UIViewController, WKNavigationDelegate {
             webView.goBack()
         } else {
             //Pop view controller to preview view controller
+            self.dismiss(animated: true, completion: nil)
+        }
+    }
+    
+    @objc func screenEdgeSwiped(_ recognizer: UIScreenEdgePanGestureRecognizer) {
+        if recognizer.state == .recognized {
             self.dismiss(animated: true, completion: nil)
         }
     }

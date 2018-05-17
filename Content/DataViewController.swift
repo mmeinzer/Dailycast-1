@@ -12,6 +12,7 @@ import SwiftyJSON
 import Kingfisher
 import WebKit
 import SwiftSoup
+import SwiftSVG
 
 class DataViewController: UIViewController, WKNavigationDelegate{
 
@@ -111,7 +112,7 @@ class DataViewController: UIViewController, WKNavigationDelegate{
         
     }
     
-    func setBackground(){
+    func setBackground(){ //try to get not an svg
         if(index == 0){
             print("first index")
             topLabel.text = "Dailycast"
@@ -181,22 +182,32 @@ class DataViewController: UIViewController, WKNavigationDelegate{
     
     func handleSVG(url: String){
         do{
-            let html = try String(contentsOf: URL(string: url)!, encoding: .ascii)
-            let doc: Document = try! SwiftSoup.parse(html)
-            let svg: Elements = try doc.select("svg")
-            let width = try svg.first()?.attr("width").replacingOccurrences(of: "px", with: "")
-            let height = try svg.first()?.attr("height").replacingOccurrences(of: "px", with: "")
             
             self.view.backgroundColor = UIColor.white
             topView.backgroundColor = UIColor.black
             topText.textColor = UIColor.white
             bgView.backgroundColor = UIColor.black
             dataLabel.textColor = UIColor.white
-            let webView: WKWebView = WKWebView(frame: CGRect(x: 0, y: self.topView.frame.maxY+30, width: self.view.frame.width, height: CGFloat(Int(height!)!)))
-            webView.navigationDelegate = self
-            webView.layer.zPosition = 1
-            webView.load(URLRequest(url: URL(string: url)!))
-            self.view.addSubview(webView)
+
+            let svgURL = URL(string: url)!
+            let hammock = CALayer(SVGURL: svgURL) { (svgLayer) in
+//                svgLayer.fillColor = UIColor(red:0.52, green:0.16, blue:0.32, alpha:1.00).cgColor
+                svgLayer.resizeToFit(self.view.bounds)
+                svgLayer.backgroundColor = UIColor.white.cgColor
+            }
+            self.view.layer.addSublayer(hammock)
+            
+//            let html = try String(contentsOf: URL(string: url)!, encoding: .ascii)
+//            let doc: Document = try! SwiftSoup.parse(html)
+//            let svg: Elements = try doc.select("svg")
+//            let width = try svg.first()?.attr("width").replacingOccurrences(of: "px", with: "")
+//            let height = try svg.first()?.attr("height").replacingOccurrences(of: "px", with: "")
+//
+//            let webView: WKWebView = WKWebView(frame: CGRect(x: 0, y: self.topView.frame.maxY+30, width: self.view.frame.width, height: CGFloat(Int(height!)!)))
+//            webView.navigationDelegate = self
+//            webView.layer.zPosition = 1
+//            webView.load(URLRequest(url: URL(string: url)!))
+//            self.view.addSubview(webView)
         }
         catch{
             print(error)
@@ -219,9 +230,9 @@ class DataViewController: UIViewController, WKNavigationDelegate{
            
             let scaleFactor = webViewSize.width / CGFloat(Int(width!)!);
             
-            webView.scrollView.minimumZoomScale = scaleFactor;
-            webView.scrollView.maximumZoomScale = scaleFactor;
-            webView.scrollView.setZoomScale(scaleFactor, animated: true)
+            webView.scrollView.minimumZoomScale = scaleFactor
+            webView.scrollView.maximumZoomScale = scaleFactor
+            webView.scrollView.setZoomScale(scaleFactor, animated: false)
             webView.scrollView.isScrollEnabled = false
             webView.isUserInteractionEnabled = false
 

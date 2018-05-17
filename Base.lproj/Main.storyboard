@@ -294,6 +294,7 @@
                     <connections>
                         <outlet property="navBar" destination="cfq-9p-2Ea" id="ZCs-fO-0Dm"/>
                         <outlet property="pageTitle" destination="YoO-N1-b44" id="bvX-zH-qGx"/>
+                        <outlet property="progressHeight" destination="3AQ-Kx-ieb" id="zPs-G5-lYf"/>
                         <outlet property="progressView" destination="47s-Fp-w1d" id="Kv8-fF-rOs"/>
                         <outlet property="webView" destination="xvC-Oc-OhM" id="ohz-6H-j3U"/>
                     </connections>
