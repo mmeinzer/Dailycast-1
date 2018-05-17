@@ -36,6 +36,7 @@ class DataViewController: UIViewController, WKNavigationDelegate{
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
+        print("index \(index)")
         imageView = UIImageView(frame: view.frame)
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
@@ -186,6 +187,11 @@ class DataViewController: UIViewController, WKNavigationDelegate{
             let width = try svg.first()?.attr("width").replacingOccurrences(of: "px", with: "")
             let height = try svg.first()?.attr("height").replacingOccurrences(of: "px", with: "")
             
+            self.view.backgroundColor = UIColor.white
+            topView.backgroundColor = UIColor.black
+            topText.textColor = UIColor.white
+            bgView.backgroundColor = UIColor.black
+            dataLabel.textColor = UIColor.white
             let webView: WKWebView = WKWebView(frame: CGRect(x: 0, y: self.topView.frame.maxY+30, width: self.view.frame.width, height: CGFloat(Int(height!)!)))
             webView.navigationDelegate = self
             webView.layer.zPosition = 1

@@ -104,9 +104,8 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy_MMM_dd"
-        let result = formatter.string(from: date)
-//        let result = "2018_May_12"
-        print(result)
+//        let result = formatter.string(from: date)
+        let result = "2018_May_16"
         Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Portal:Current_events/" + result).response{ response in
             if let data = response.data{
                 let json = JSON(data)
@@ -123,19 +122,35 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                     do{
                         let doc: Document = try! SwiftSoup.parse(html[i])
                         let li: Elements = try doc.select("li")
-
+                        
                         let sublist = try li.select("li").array()
                         
-                        let headline = sublist.last
-                        self.headlines.append((try headline?.text())!)
+                        for element in sublist{
+                            let subelements = try element.select("ul").array().count
+                            if(subelements == 0){
+                                print(try element.text())
+                                print("has no subelememnts")
+                                self.headlines.append(try element.text())
+                                let lasturl = try element.select("a").array().last?.attr("href").asURL()
+                                self.urls.append(lasturl!)
+                                
+                                if(self.topics.count < self.headlines.count){
+                                    let topic = try element.select("a").first()?.attr("href")
+                                    self.topics.append(topic!)
+                                }
+                            }
+                            else{
+                                print("at else")
+                                if(self.topics.count < self.headlines.count + 1){
+                                    let topic = try element.select("a").first()?.attr("href")
+                                    self.topics.append(topic!)
+                                }
+                                
+                            }
+                        }
                         
-                        print("added to headlines: " + self.headlines.last!)
-                        
-                        let lasturl = try sublist.last?.select("a").last()?.attr("href").asURL()
-                        self.urls.append(lasturl!)
-
-                        let topic = try sublist.first?.select("a").first()?.attr("href")
-                        self.topics.append(topic!)
+                        print("topic array:")
+                        dump(self.topics)
 
 
                     }
@@ -144,35 +159,6 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                     }
                 }
 
-//                do{
-//                    let doc: Document = try! SwiftSoup.parse(html[2])
-//                    let li: Elements = try doc.select("li")
-//
-//                    dump(html)
-//                    for element in li.array(){
-//                        print("Topic:")
-//                        let topic = try element.select("a").first()
-//                        self.topics.append((try topic?.text())!)
-//                        dump(self.topics.last!)
-//                        let url = try topic?.attr("href")
-//                        dump(url!)
-//                        self.urls.append(URL(string: "https://en.wikipedia.org" + url!)!)
-//
-//                        let children = element.children()
-//                        for element in children.array(){
-//                            let headline = try element.select("li")
-//                            dump("headline:")
-//                            dump(try headline.text())
-//                        }
-//
-//                    }
-//
-//                }
-//                catch Exception.Error(let type, let message) {
-//                    print(message)
-//                } catch {
-//                    print("error")
-//                }
                 
                 self.arrayLoaded=true
                 let nc = NotificationCenter.default
