@@ -14,11 +14,29 @@ import WebKit
 import SwiftSoup
 import SwiftSVG
 
-class DataViewController: UIViewController, WKNavigationDelegate{
+extension NSMutableAttributedString {
+    
+    internal convenience init?(html: String) {
+        guard let data = html.data(using: String.Encoding.utf16, allowLossyConversion: false) else {
+            return nil
+        }
+        
+        guard let attributedString = try? NSMutableAttributedString(data: data, options: [NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil) else {
+            return nil
+        }
+        
+        self.init(attributedString: attributedString)
+    }
+}
+
+
+class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDelegate{
 
     @IBOutlet weak var arrowImage: UIImageView!
     @IBOutlet weak var topLabel: UILabel!
-    @IBOutlet weak var dataLabel: UILabel!
+    @IBOutlet weak var headlineView: UITextView!
+    
+    
     var dataObject: String = ""
     var headlineSnippet: String = ""
     var articleURL: URL?
@@ -28,10 +46,10 @@ class DataViewController: UIViewController, WKNavigationDelegate{
     @IBOutlet weak var topText: UILabel!
     @IBOutlet weak var dateLabel: UILabel!
     
-
     var imageView: UIImageView!
     var swipeUp: UISwipeGestureRecognizer!
     var spinner: UIActivityIndicatorView!
+    var linkArray: [URL] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,8 +61,15 @@ class DataViewController: UIViewController, WKNavigationDelegate{
         imageView.clipsToBounds = true
         imageView.layer.zPosition = 0
         view.addSubview(imageView)
-
-        dataLabel.layer.zPosition = 2
+        
+        
+        headlineView.layer.zPosition = 2
+        headlineView.isScrollEnabled = false
+        headlineView.isEditable = false
+        headlineView.isSelectable = true
+        headlineView.delegate = self
+        headlineView.isUserInteractionEnabled = true
+        
         arrowImage.layer.zPosition = 2
 
         topLabel.backgroundColor = UIColor.black
@@ -56,8 +81,8 @@ class DataViewController: UIViewController, WKNavigationDelegate{
         spinner = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
         spinner.isHidden = true
         
-        setBackground()
-        
+        setBackground() //have this fetch the next background
+
         
         let nc = NotificationCenter.default
         nc.addObserver(self, selector: #selector(clearActivity), name: Notification.Name("resetCache"), object: nil)
@@ -71,6 +96,18 @@ class DataViewController: UIViewController, WKNavigationDelegate{
         topText.text = String(sanatize!).removingPercentEncoding
 
     }
+    
+    func textView(_ textView: UITextView, shouldInteractWith slug: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
+        print("interaction")
+        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
+        articleViewController.url = URL(string: "https://en.wikipedia.org" + slug.path)
+        self.present(articleViewController, animated: true)
+        
+        return true
+    }
+
     
     @objc func swipedAction(){
         print("swipe")
@@ -87,7 +124,11 @@ class DataViewController: UIViewController, WKNavigationDelegate{
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.dataLabel!.text = headlineSnippet
+
+        let attrs = NSMutableAttributedString(html: headlineSnippet)
+        attrs?.addAttribute(.font, value: UIFont(name: "Avenir", size: 18.0)!, range: NSRange(location:0,length:(attrs?.length)!))
+        self.headlineView.attributedText = attrs
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -96,7 +137,6 @@ class DataViewController: UIViewController, WKNavigationDelegate{
     
     override func viewWillDisappear(_ animated: Bool) {
     }
-    
     
     
     @objc func clearActivity(){
@@ -116,7 +156,7 @@ class DataViewController: UIViewController, WKNavigationDelegate{
         if(index == 0){
             print("first index")
             topLabel.text = "Dailycast"
-            dataLabel.isHidden = true
+            headlineView.isHidden = true
             arrowImage.isHidden = true
             topView.isHidden = true
             
@@ -187,63 +227,23 @@ class DataViewController: UIViewController, WKNavigationDelegate{
             topView.backgroundColor = UIColor.black
             topText.textColor = UIColor.white
             bgView.backgroundColor = UIColor.black
-            dataLabel.textColor = UIColor.white
+            headlineView.textColor = UIColor.white
+            headlineView.backgroundColor = UIColor.black
+            headlineView.attributedText.addAt
 
             let svgURL = URL(string: url)!
             let hammock = CALayer(SVGURL: svgURL) { (svgLayer) in
-//                svgLayer.fillColor = UIColor(red:0.52, green:0.16, blue:0.32, alpha:1.00).cgColor
                 svgLayer.resizeToFit(self.view.bounds)
                 svgLayer.backgroundColor = UIColor.white.cgColor
             }
             self.view.layer.addSublayer(hammock)
-            
-//            let html = try String(contentsOf: URL(string: url)!, encoding: .ascii)
-//            let doc: Document = try! SwiftSoup.parse(html)
-//            let svg: Elements = try doc.select("svg")
-//            let width = try svg.first()?.attr("width").replacingOccurrences(of: "px", with: "")
-//            let height = try svg.first()?.attr("height").replacingOccurrences(of: "px", with: "")
-//
-//            let webView: WKWebView = WKWebView(frame: CGRect(x: 0, y: self.topView.frame.maxY+30, width: self.view.frame.width, height: CGFloat(Int(height!)!)))
-//            webView.navigationDelegate = self
-//            webView.layer.zPosition = 1
-//            webView.load(URLRequest(url: URL(string: url)!))
-//            self.view.addSubview(webView)
         }
         catch{
             print(error)
         }
     }
     
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        print("scaleing")
-        let contentSize = webView.scrollView.contentSize;
-        let webViewSize = webView.bounds.size;
-        do{
-            let html = try String(contentsOf: webView.url!, encoding: .ascii)
-            let doc: Document = try! SwiftSoup.parse(html)
-            let svg: Elements = try doc.select("svg")
-            let width = try svg.first()?.attr("width").replacingOccurrences(of: "px", with: "")
-            let height = try svg.first()?.attr("height").replacingOccurrences(of: "px", with: "")
-            
-            print(height)
-            print(webView.frame.height)
-           
-            let scaleFactor = webViewSize.width / CGFloat(Int(width!)!);
-            
-            webView.scrollView.minimumZoomScale = scaleFactor
-            webView.scrollView.maximumZoomScale = scaleFactor
-            webView.scrollView.setZoomScale(scaleFactor, animated: false)
-            webView.scrollView.isScrollEnabled = false
-            webView.isUserInteractionEnabled = false
 
-            
-        }
-        catch{
-            print(error)
-        }
-       
-        
-    }
 
     
     func backgroundAttempt2(title: String){

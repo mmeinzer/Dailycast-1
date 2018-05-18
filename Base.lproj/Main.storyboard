@@ -124,20 +124,22 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9AW-t8-dZH">
                                 <rect key="frame" x="16" y="469" width="343" height="150"/>
                                 <subviews>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" numberOfLines="0" minimumFontSize="10" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cF2-Le-7mQ">
+                                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="E4p-je-uJk">
                                         <rect key="frame" x="8" y="8" width="327" height="134"/>
-                                        <fontDescription key="fontDescription" name="AvenirNext-Medium" family="Avenir Next" pointSize="23"/>
-                                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
+                                        <fontDescription key="fontDescription" name="Avenir-Book" family="Avenir" pointSize="17"/>
+                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                        <dataDetectorType key="dataDetectorTypes" link="YES"/>
+                                    </textView>
                                 </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
-                                    <constraint firstItem="cF2-Le-7mQ" firstAttribute="top" secondItem="9AW-t8-dZH" secondAttribute="top" constant="8" id="3BJ-cw-MP3"/>
-                                    <constraint firstItem="cF2-Le-7mQ" firstAttribute="leading" secondItem="9AW-t8-dZH" secondAttribute="leading" constant="8" id="8tM-zb-qDA"/>
-                                    <constraint firstAttribute="trailing" secondItem="cF2-Le-7mQ" secondAttribute="trailing" constant="8" id="UbE-Bw-O3F"/>
+                                    <constraint firstAttribute="trailing" secondItem="E4p-je-uJk" secondAttribute="trailing" constant="8" id="YTs-Zf-3KW"/>
+                                    <constraint firstAttribute="bottom" secondItem="E4p-je-uJk" secondAttribute="bottom" constant="8" id="aT5-o7-3BA"/>
                                     <constraint firstAttribute="height" constant="150" id="cys-QD-DIz"/>
-                                    <constraint firstAttribute="bottom" secondItem="cF2-Le-7mQ" secondAttribute="bottom" constant="8" id="nIs-EV-Acr"/>
+                                    <constraint firstItem="E4p-je-uJk" firstAttribute="leading" secondItem="9AW-t8-dZH" secondAttribute="leading" constant="8" id="ebg-Ye-gzf"/>
+                                    <constraint firstItem="E4p-je-uJk" firstAttribute="top" secondItem="9AW-t8-dZH" secondAttribute="top" constant="8" id="wzK-mq-EwK"/>
                                 </constraints>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Isw-NV-MAj">
@@ -186,8 +188,8 @@
                     <connections>
                         <outlet property="arrowImage" destination="W6y-BS-fAJ" id="AyL-cW-PyM"/>
                         <outlet property="bgView" destination="9AW-t8-dZH" id="GUx-1R-tCz"/>
-                        <outlet property="dataLabel" destination="cF2-Le-7mQ" id="3EH-BK-JV6"/>
                         <outlet property="dateLabel" destination="HYT-ug-w9u" id="cUy-xz-iq0"/>
+                        <outlet property="headlineView" destination="E4p-je-uJk" id="dgD-Ne-8Cy"/>
                         <outlet property="topLabel" destination="q9G-Po-dSl" id="h7Q-mt-eut"/>
                         <outlet property="topText" destination="co6-e1-2DM" id="CZp-oT-9zG"/>
                         <outlet property="topView" destination="Isw-NV-MAj" id="AII-RA-g9v"/>

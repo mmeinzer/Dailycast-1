@@ -22,28 +22,6 @@ import Kingfisher
 import SwiftyJSON
 import SwiftSoup
 
-extension Data {
-    var html2AttributedString: NSAttributedString? {
-        do {
-            return try NSAttributedString(data: self, options: [.documentType: NSAttributedString.DocumentType.html, .characterEncoding: String.Encoding.utf8.rawValue], documentAttributes: nil)
-        } catch {
-            print("error:", error)
-            return  nil
-        }
-    }
-    var html2String: String {
-        return html2AttributedString?.string ?? ""
-    }
-}
-
-extension String {
-    var html2AttributedString: NSAttributedString? {
-        return Data(utf8).html2AttributedString
-    }
-    var html2String: String {
-        return html2AttributedString?.string ?? ""
-    }
-}
 
 
 class ModelController: NSObject, UIPageViewControllerDataSource {
@@ -66,8 +44,8 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy_MMM_dd"
-        let result = formatter.string(from: date)
-//        let result = "2018_May_16"
+//        let result = formatter.string(from: date)
+        let result = "2018_May_16"
         Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Portal:Current_events/" + result).response{ response in
             if let data = response.data{
                 let json = JSON(data)
@@ -92,7 +70,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                             if(subelements == 0){
                                 print(try element.text())
                                 print("has no subelememnts")
-                                self.headlines.append(try element.text())
+                                self.headlines.append(try element.html())
                                 let lasturl = try element.select("a").array().last?.attr("href").asURL()
                                 self.urls.append(lasturl!)
                                 
