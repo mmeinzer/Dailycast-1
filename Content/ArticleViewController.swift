@@ -26,7 +26,7 @@ class ArticleViewController: UIViewController, WKNavigationDelegate, UIScrollVie
     override func viewDidLoad() {
         super.viewDidLoad()
         webView.navigationDelegate = self
-
+        print("loading \(url)")
         webView.load(URLRequest(url: url!))
         webView.layer.zPosition = 0
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)

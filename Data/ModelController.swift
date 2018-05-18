@@ -44,8 +44,8 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy_MMM_dd"
-//        let result = formatter.string(from: date)
-        let result = "2018_May_16"
+        let result = formatter.string(from: date)
+//        let result = "2018_May_16"
         Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Portal:Current_events/" + result).response{ response in
             if let data = response.data{
                 let json = JSON(data)
@@ -76,6 +76,12 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                                 
                                 if(self.topics.count < self.headlines.count){
                                     let topic = try element.select("a").first()?.attr("href")
+//
+//                                    let linkArray = try element.select("a").array()
+//                                    var topicArray: [String] = []
+//                                    for i in 0...(linkArray.count - 1) {
+//                                        topicArray.append(try linkArray[i].attr("href"))
+//                                    }
                                     self.topics.append(topic!)
                                 }
                             }
@@ -83,6 +89,12 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                                 print("at else")
                                 if(self.topics.count < self.headlines.count + 1){
                                     let topic = try element.select("a").first()?.attr("href")
+//                                    
+//                                    let linkArray = try element.select("a").array()
+//                                    var topicArray: [String] = []
+//                                    for i in 0...(linkArray.count - 1) {
+//                                        topicArray.append(try linkArray[i].attr("href"))
+//                                    }
                                     self.topics.append(topic!)
                                 }
                                 

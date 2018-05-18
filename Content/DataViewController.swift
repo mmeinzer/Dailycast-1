@@ -50,6 +50,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
     var swipeUp: UISwipeGestureRecognizer!
     var spinner: UIActivityIndicatorView!
     var linkArray: [URL] = []
+    var backgroundAttempt = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,7 +60,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         imageView = UIImageView(frame: view.frame)
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.layer.zPosition = 0
+        imageView.layer.zPosition = 1
         view.addSubview(imageView)
         
         
@@ -95,14 +96,24 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         let sanatize = dataObject.split(separator: "/").last?.replacingOccurrences(of: "_", with: " ")
         topText.text = String(sanatize!).removingPercentEncoding
 
+        
+        let placeholderView = UIImageView(frame: CGRect(x: 0, y: self.dateLabel.frame.maxY + 16, width: self.view.frame.width/1.8, height: self.view.frame.width/1.8))
+        placeholderView.center = CGPoint(x: self.view.center.x, y: placeholderView.frame.midY)
+        
+        placeholderView.image = UIImage(named: "news")
+        placeholderView.layer.zPosition = 0
+        
+        self.view.addSubview(placeholderView)
     }
     
     func textView(_ textView: UITextView, shouldInteractWith slug: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
         print("interaction")
+        print(slug)
+        print(slug.path)
         
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
-        articleViewController.url = URL(string: "https://en.wikipedia.org" + slug.path)
+        articleViewController.url = URL(string: "https://en.wikipedia.org" + slug.path.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)!)
         self.present(articleViewController, animated: true)
         
         return true
@@ -114,7 +125,9 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
         articleViewController.url = articleURL
-        self.present(articleViewController, animated: true)
+        if(index != 0){
+            self.present(articleViewController, animated: true)
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -128,6 +141,8 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         let attrs = NSMutableAttributedString(html: headlineSnippet)
         attrs?.addAttribute(.font, value: UIFont(name: "Avenir", size: 18.0)!, range: NSRange(location:0,length:(attrs?.length)!))
         self.headlineView.attributedText = attrs
+        
+        //set the font to fit the frame here
         
     }
     
@@ -184,41 +199,91 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             topLabel.isHidden = true
             dateLabel.isHidden = true
             imageView.kf.indicatorType = .activity
-//            let string = articleURL!.absoluteString
-//            let sindex = string.range(of: "/", options: .backwards)?.upperBound
-//            let title = string.substring(from: sindex!).replacingOccurrences(of: "_", with: "%20")
-            let title = String(dataObject.split(separator: "/").last!)
-            print(title)
             
-            Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=pageimages&format=json&piprop=original").response{ response in
-                if let data = response.data{
-                    let json = JSON(data)
-                    let dict = json["query"]["pages"].dictionaryValue
-                    let pageid: String = String(describing: dict.keys.first!)
-                    print(pageid)
-                    let image = json["query"]["pages"][pageid]["original"]["source"]
-                    dump(image.string)
-                    DispatchQueue.main.async() {
-                        if(image.string != nil){
-                            print("SETTING IMAGE AT ")
-                            dump(title)
-                            if(image.string?.split(separator: ".").last! == "svg"){
-                                print("creating svg")
-                                self.handleSVG(url: image.string!)
-                            }
-                            else{
-                                self.imageView.kf.setImage(with: image.url!)
-                            }
+            if(backgroundAttempt >= dataObject.indices.count - 1){
+                print("too many attempts")
+                //break out
+            }
+            else{
+                let title = String(dataObject.split(separator: "/").last!)
+                print("attempting to get an image from:")
+                print(title)
+                print("we're on attempt number \(backgroundAttempt)")
+
+                getPageImage(title: title)
+                
+            }
+        }
+    }
+    
+    func getPageImage(title: String){
+        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=pageimages&format=json&piprop=original").response{ response in
+            if let data = response.data{
+                let json = JSON(data)
+                let dict = json["query"]["pages"].dictionaryValue
+                let pageid: String = String(describing: dict.keys.first!)
+                let image = json["query"]["pages"][pageid]["original"]["source"]
+                DispatchQueue.main.async() {
+                    if(image.string != nil){
+                        if(image.string?.split(separator: ".").last! == "svg"){
+                            print("Main image is an svg, parsing through the rest of the page")
+                            self.findImageOnPage(title: title)
                         }
                         else{
-                            self.backgroundAttempt2(title: title)
+                            print("Setting main page image from: ")
+                            dump(image.string!)
+                            self.imageView.kf.setImage(with: image.url!)
+                            self.checkForDefaultImage()
                         }
+                    }
+                    else{
+                        print("No main image, parsing through the rest of the page")
+                        self.findImageOnPage(title: title)
                     }
                 }
             }
         }
-
     }
+    
+    func findImageOnPage(title: String){
+        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=images&redirects&format=json").response{ response in
+            if let data = response.data{
+                let json = JSON(data)
+                let dict = json["query"]["pages"].dictionaryValue
+                let pageid: String = String(describing: dict.keys.first!)
+                let images = json["query"]["pages"][pageid]["images"]
+                var image = ""
+                for i in 0...images.count-1{
+                    let filepath = images[i]["title"].string!
+                    let filetype = filepath.split(separator: ".").last!
+                    if(filetype != "svg" && filetype != "tif"){
+                        image = "https://commons.wikimedia.org/wiki/Special:FilePath/" + filepath.split(separator: ":")[1].addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
+                        break //this sucks
+                    }
+                }
+                DispatchQueue.main.async() {
+                    
+                    if(image != ""){
+                        print("Setting image from page with url \(image)")
+                        self.imageView.kf.setImage(with: URL(string: image))
+                        self.checkForDefaultImage()
+                    }
+                    else{
+                        print("no image")
+
+                    }
+                }
+            }
+        }
+    }
+    
+    func checkForDefaultImage(){
+        if(imageView.image == nil){
+            
+        }
+    }
+    
+    
     
     func handleSVG(url: String){
         do{
@@ -229,8 +294,11 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             bgView.backgroundColor = UIColor.black
             headlineView.textColor = UIColor.white
             headlineView.backgroundColor = UIColor.black
-            headlineView.attributedText.addAt
-
+            
+//            guard let text = self.headlineView.attributedText?.mutableCopy() as? NSMutableAttributedString else { return }
+//            text.addAttribute(.foregroundColor, value: UIColor.white, range: NSRange(location:0,length:(text.length)))
+//            self.headlineView.attributedText = text
+            
             let svgURL = URL(string: url)!
             let hammock = CALayer(SVGURL: svgURL) { (svgLayer) in
                 svgLayer.resizeToFit(self.view.bounds)
@@ -246,26 +314,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
 
 
     
-    func backgroundAttempt2(title: String){
-        print("attempting the background again")
-        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=images&format=json&piprop=original").response{ response in
-            if let data = response.data{
-                let json = JSON(data)
-                let dict = json["query"]["pages"].dictionaryValue
-                let pageid: String = String(describing: dict.keys.first!)
-                let image = json["query"]["pages"][pageid]["images"][0]["title"].string!.replacingOccurrences(of: "File:", with: "")
-                let imagepath = "https://commons.wikimedia.org/wiki/Special:FilePath/" + image.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
-                dump(imagepath)
-                DispatchQueue.main.async() {
-                    if(imagepath != nil){
-                        print("SETTING IMAGE AGAIN AT ")
-                        print(imagepath)
-                        self.imageView.kf.setImage(with: URL(string: imagepath))
-                    }
-                }
-            }
-        }
-    }
+
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
