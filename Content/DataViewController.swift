@@ -12,7 +12,6 @@ import SwiftyJSON
 import Kingfisher
 import WebKit
 import SwiftSoup
-import SwiftSVG
 
 extension NSMutableAttributedString {
     
@@ -30,6 +29,7 @@ extension NSMutableAttributedString {
 }
 
 
+
 class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDelegate{
 
     @IBOutlet weak var arrowImage: UIImageView!
@@ -37,6 +37,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
     @IBOutlet weak var headlineView: UITextView!
     
     
+    var imageURL: URL?
     var dataObject: String = ""
     var headlineSnippet: String = ""
     var articleURL: URL?
@@ -45,7 +46,9 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
     @IBOutlet weak var topView: UIView!
     @IBOutlet weak var topText: UILabel!
     @IBOutlet weak var dateLabel: UILabel!
+    @IBOutlet weak var instructions: UILabel!
     
+    var placeholderView: UIImageView!
     var imageView: UIImageView!
     var swipeUp: UISwipeGestureRecognizer!
     var spinner: UIActivityIndicatorView!
@@ -57,6 +60,8 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         // Do any additional setup after loading the view, typically from a nib.
         
         print("index \(index)")
+        
+        
         imageView = UIImageView(frame: view.frame)
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
@@ -79,8 +84,16 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         swipeUp.direction = .up
         view.addGestureRecognizer(swipeUp)
         
+        //initial spinner
         spinner = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
         spinner.isHidden = true
+        
+        //news view
+        placeholderView = UIImageView(frame: CGRect(x: 0, y: self.dateLabel.frame.maxY + 16, width: self.view.frame.width/1.8, height: self.view.frame.width/1.8))
+        placeholderView.center = CGPoint(x: self.view.center.x, y: placeholderView.frame.midY)
+        placeholderView.image = UIImage(named: "news")
+        placeholderView.layer.zPosition = 0
+        self.view.addSubview(placeholderView)
         
         setBackground() //have this fetch the next background
 
@@ -92,18 +105,12 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         bgView.layer.zPosition = 2
         topView.layer.cornerRadius = 2
         topView.layer.zPosition = 2
+        let topTap = UITapGestureRecognizer(target: self, action: #selector(topTapped))
+        topView.addGestureRecognizer(topTap)
         
         let sanatize = dataObject.split(separator: "/").last?.replacingOccurrences(of: "_", with: " ")
         topText.text = String(sanatize!).removingPercentEncoding
-
         
-        let placeholderView = UIImageView(frame: CGRect(x: 0, y: self.dateLabel.frame.maxY + 16, width: self.view.frame.width/1.8, height: self.view.frame.width/1.8))
-        placeholderView.center = CGPoint(x: self.view.center.x, y: placeholderView.frame.midY)
-        
-        placeholderView.image = UIImage(named: "news")
-        placeholderView.layer.zPosition = 0
-        
-        self.view.addSubview(placeholderView)
     }
     
     func textView(_ textView: UITextView, shouldInteractWith slug: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
@@ -129,6 +136,14 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             self.present(articleViewController, animated: true)
         }
     }
+    
+    @objc func topTapped(){
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
+        articleViewController.url = URL(string: "https://en.wikipedia.org" + dataObject)
+        self.present(articleViewController, animated: true)
+    }
+    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -137,14 +152,72 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        let noExt = headlineSnippet.components(separatedBy: "<a rel=\"nofollow\" class=\"external text\"")[0]
+        let attrs = NSMutableAttributedString(html: noExt)
+        attrs?.addAttribute(.font, value: UIFont(name: "Avenir", size: 20.0)!, range: NSRange(location:0,length:(attrs?.length)!))
 
-        let attrs = NSMutableAttributedString(html: headlineSnippet)
-        attrs?.addAttribute(.font, value: UIFont(name: "Avenir", size: 18.0)!, range: NSRange(location:0,length:(attrs?.length)!))
         self.headlineView.attributedText = attrs
         
-        //set the font to fit the frame here
-        
+        resizeFormatHeadline()
+
     }
+    
+    func resizeFormatHeadline(){
+        headlineView.isScrollEnabled = true
+        var font = 20.0
+        print("Resizing text")
+
+        let linkText = NSMutableAttributedString(attributedString: headlineView.attributedText)
+        let newString = NSMutableAttributedString(attributedString: headlineView.attributedText)
+        
+        linkText.enumerateAttributes(in: NSRange(0..<linkText.length), options: .reverse) { (attributes, range, pointer) in
+            if let _ = attributes[NSAttributedStringKey.link] {
+                newString.removeAttribute(NSAttributedStringKey.font, range: range)
+                newString.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "Avenir-Black", size: CGFloat(font)), range: range)
+            }
+        }
+        
+        self.headlineView.attributedText = newString
+        
+        let linkAttributes: [String : Any] = [
+            NSAttributedStringKey.foregroundColor.rawValue: UIColor.black,
+            NSAttributedStringKey.underlineColor.rawValue: UIColor.clear]
+        self.headlineView.linkTextAttributes = linkAttributes
+        
+        let activeLinkAttributes: [String : Any] = [
+            NSAttributedStringKey.foregroundColor.rawValue: UIColor.blue,
+            NSAttributedStringKey.underlineColor.rawValue: UIColor.blue]
+        
+        
+        while(headlineView.contentSize.height > 146){
+            font -= 1
+            let resizedText = NSMutableAttributedString(attributedString: headlineView.attributedText)
+            resizedText.removeAttribute(NSAttributedStringKey.font, range: NSRange(0..<resizedText.length))
+            resizedText.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "Avenir", size: CGFloat(font))!, range: NSRange(0..<resizedText.length))
+            headlineView.attributedText = resizedText
+            print("set font to \(font)")
+            
+            let linkText = NSMutableAttributedString(attributedString: headlineView.attributedText)
+            let newString = NSMutableAttributedString(attributedString: headlineView.attributedText)
+            
+            linkText.enumerateAttributes(in: NSRange(0..<linkText.length), options: .reverse) { (attributes, range, pointer) in
+                if let _ = attributes[NSAttributedStringKey.link] {
+                    newString.removeAttribute(NSAttributedStringKey.font, range: range)
+                    newString.addAttribute(NSAttributedStringKey.font, value: UIFont(name: "Avenir-Black", size: CGFloat(font)), range: range)
+                }
+            }
+            self.headlineView.attributedText = newString
+        }
+        
+        
+        headlineView.isScrollEnabled = false
+
+    }
+    
+
+    
+
     
     override func viewDidAppear(_ animated: Bool) {
     }
@@ -167,7 +240,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         
     }
     
-    func setBackground(){ //try to get not an svg
+    func setBackground(){
         if(index == 0){
             print("first index")
             topLabel.text = "Dailycast"
@@ -176,7 +249,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             topView.isHidden = true
             
             spinner.isHidden = false
-            spinner.center = CGPoint(x: self.view.frame.midX, y: self.view.frame.maxY - 32)
+            spinner.center = CGPoint(x: self.view.frame.midX, y: self.view.frame.maxY - 42)
             spinner.startAnimating()
             self.view.addSubview(spinner)
             
@@ -193,128 +266,51 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             
             self.view.addSubview(dateLabel)
             
+            placeholderView.isHidden = true
+            
 
         }
         else{
             topLabel.isHidden = true
             dateLabel.isHidden = true
+            instructions.isHidden = true
             imageView.kf.indicatorType = .activity
+
+            let title = String(dataObject.split(separator: "/").last!)
+            imageURL = images[title]
             
-            if(backgroundAttempt >= dataObject.indices.count - 1){
-                print("too many attempts")
-                //break out
+            if(imageURL?.absoluteString != "notfound"){
+                print("image background")
+                print(imageURL)
+                
+                let activity = UIActivityIndicatorView()
+                activity.activityIndicatorViewStyle = .white
+                let windowx = placeholderView.frame.minX + 0.3278008299*placeholderView.frame.width
+                let windowy = placeholderView.frame.minY + 0.3402489627*placeholderView.frame.height
+
+                activity.center = CGPoint(x: windowx, y: windowy)
+                activity.startAnimating()
+                self.view.addSubview(activity)
+                
+                self.imageView.kf.setImage(with: imageURL, completionHandler: { (image, error, cacheType, imageUrl) in
+                    if(image != nil){
+                        activity.stopAnimating()
+                        activity.removeFromSuperview()
+                        self.placeholderView.isHidden = false
+                    }
+                    else{
+                        activity.stopAnimating()
+                        activity.removeFromSuperview()
+                    }
+                })
             }
             else{
-                let title = String(dataObject.split(separator: "/").last!)
-                print("attempting to get an image from:")
-                print(title)
-                print("we're on attempt number \(backgroundAttempt)")
-
-                getPageImage(title: title)
-                
+                print("no background here")
             }
-        }
-    }
-    
-    func getPageImage(title: String){
-        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=pageimages&format=json&piprop=original").response{ response in
-            if let data = response.data{
-                let json = JSON(data)
-                let dict = json["query"]["pages"].dictionaryValue
-                let pageid: String = String(describing: dict.keys.first!)
-                let image = json["query"]["pages"][pageid]["original"]["source"]
-                DispatchQueue.main.async() {
-                    if(image.string != nil){
-                        if(image.string?.split(separator: ".").last! == "svg"){
-                            print("Main image is an svg, parsing through the rest of the page")
-                            self.findImageOnPage(title: title)
-                        }
-                        else{
-                            print("Setting main page image from: ")
-                            dump(image.string!)
-                            self.imageView.kf.setImage(with: image.url!)
-                            self.checkForDefaultImage()
-                        }
-                    }
-                    else{
-                        print("No main image, parsing through the rest of the page")
-                        self.findImageOnPage(title: title)
-                    }
-                }
-            }
-        }
-    }
-    
-    func findImageOnPage(title: String){
-        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=images&redirects&format=json").response{ response in
-            if let data = response.data{
-                let json = JSON(data)
-                let dict = json["query"]["pages"].dictionaryValue
-                let pageid: String = String(describing: dict.keys.first!)
-                let images = json["query"]["pages"][pageid]["images"]
-                var image = ""
-                for i in 0...images.count-1{
-                    let filepath = images[i]["title"].string!
-                    let filetype = filepath.split(separator: ".").last!
-                    if(filetype != "svg" && filetype != "tif"){
-                        image = "https://commons.wikimedia.org/wiki/Special:FilePath/" + filepath.split(separator: ":")[1].addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
-                        break //this sucks
-                    }
-                }
-                DispatchQueue.main.async() {
-                    
-                    if(image != ""){
-                        print("Setting image from page with url \(image)")
-                        self.imageView.kf.setImage(with: URL(string: image))
-                        self.checkForDefaultImage()
-                    }
-                    else{
-                        print("no image")
 
-                    }
-                }
-            }
         }
     }
     
-    func checkForDefaultImage(){
-        if(imageView.image == nil){
-            
-        }
-    }
-    
-    
-    
-    func handleSVG(url: String){
-        do{
-            
-            self.view.backgroundColor = UIColor.white
-            topView.backgroundColor = UIColor.black
-            topText.textColor = UIColor.white
-            bgView.backgroundColor = UIColor.black
-            headlineView.textColor = UIColor.white
-            headlineView.backgroundColor = UIColor.black
-            
-//            guard let text = self.headlineView.attributedText?.mutableCopy() as? NSMutableAttributedString else { return }
-//            text.addAttribute(.foregroundColor, value: UIColor.white, range: NSRange(location:0,length:(text.length)))
-//            self.headlineView.attributedText = text
-            
-            let svgURL = URL(string: url)!
-            let hammock = CALayer(SVGURL: svgURL) { (svgLayer) in
-                svgLayer.resizeToFit(self.view.bounds)
-                svgLayer.backgroundColor = UIColor.white.cgColor
-            }
-            self.view.layer.addSublayer(hammock)
-        }
-        catch{
-            print(error)
-        }
-    }
-    
-
-
-    
-
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent

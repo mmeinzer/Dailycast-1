@@ -23,6 +23,8 @@ import SwiftyJSON
 import SwiftSoup
 
 
+var images: [String: URL] = [:]
+
 
 class ModelController: NSObject, UIPageViewControllerDataSource {
 
@@ -31,7 +33,8 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     var headlines: [String] = ["first"]
     var urls: [URL] = [URL(string: "http://google.com")!]
     var arrayLoaded = false
-
+    var count = 0
+    
     override init() {
         super.init()
         getHeadlines()
@@ -76,12 +79,6 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                                 
                                 if(self.topics.count < self.headlines.count){
                                     let topic = try element.select("a").first()?.attr("href")
-//
-//                                    let linkArray = try element.select("a").array()
-//                                    var topicArray: [String] = []
-//                                    for i in 0...(linkArray.count - 1) {
-//                                        topicArray.append(try linkArray[i].attr("href"))
-//                                    }
                                     self.topics.append(topic!)
                                 }
                             }
@@ -89,39 +86,116 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                                 print("at else")
                                 if(self.topics.count < self.headlines.count + 1){
                                     let topic = try element.select("a").first()?.attr("href")
-//                                    
-//                                    let linkArray = try element.select("a").array()
-//                                    var topicArray: [String] = []
-//                                    for i in 0...(linkArray.count - 1) {
-//                                        topicArray.append(try linkArray[i].attr("href"))
-//                                    }
                                     self.topics.append(topic!)
                                 }
                                 
                             }
                         }
-                        
                         print("topic array:")
                         dump(self.topics)
-
-
                     }
                     catch {
                         print("error")
                     }
                 }
-
-                
                 self.arrayLoaded=true
-                let nc = NotificationCenter.default
                 DispatchQueue.main.async() {
-                    nc.post(name: Notification.Name("resetCache"), object: nil)
+                    self.getImages()
                 }
-                
             }
         }
     }
     
+    func getImages() {
+        var i = 0
+        for element in self.topics.dropFirst(){
+            let title = String(element.split(separator: "/").last!)
+            self.getPageImage(title: title)
+        }
+    }
+    
+    func prefetchImages(){
+        print("image dict")
+        dump((images))
+        let prefetcher = ImagePrefetcher(urls: Array(images.values)) {
+            skippedResources, failedResources, completedResources in
+            print("These resources have been prefetched: \(completedResources)")
+            print("These resources were already prefetched: \(skippedResources)")
+        }
+        prefetcher.start()
+        
+        let nc = NotificationCenter.default
+        nc.post(name: Notification.Name("resetCache"), object: nil)
+    }
+    
+    func imagedAdded(){
+        count += 1
+        if(count == topics.count - 1){
+            prefetchImages()
+        }
+    }
+    
+    func getPageImage(title: String){
+        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=pageimages&format=json&piprop=original").response{ response in
+            if let data = response.data{
+                let json = JSON(data)
+                let dict = json["query"]["pages"].dictionaryValue
+                let pageid: String = String(describing: dict.keys.first!)
+                let image = json["query"]["pages"][pageid]["original"]["source"]
+                DispatchQueue.main.async() {
+                    if(image.string != nil){
+                        if(image.string?.split(separator: ".").last! == "svg"){
+                            print("Main image is an svg, parsing through the rest of the page")
+                            self.findImageOnPage(title: title)
+                        }
+                        else{
+                            print("Setting \(title) main page image from: ")
+                            dump(image.string!)
+                            images[title] = (image.url!)
+                            self.imagedAdded()
+                        }
+                    }
+                    else{
+                        print("No main image, parsing through the rest of the page")
+                        self.findImageOnPage(title: title)
+                    }
+                }
+            }
+        }
+    }
+    
+    func findImageOnPage(title: String){
+        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=images&redirects&format=json").response{ response in
+            if let data = response.data{
+                let json = JSON(data)
+                let dict = json["query"]["pages"].dictionaryValue
+                let pageid: String = String(describing: dict.keys.first!)
+                let queryimages = json["query"]["pages"][pageid]["images"]
+                var image = ""
+                for i in 0...queryimages.count-1{
+                    let filepath = queryimages[i]["title"].string!
+                    let filetype = filepath.split(separator: ".").last!
+                    if(filetype != "svg" && filetype != "tif" && filetype != "webm"){
+                        image = "https://commons.wikimedia.org/wiki/Special:FilePath/" + filepath.split(separator: ":")[1].addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
+                        break //this sucks
+                    }
+                }
+                DispatchQueue.main.async() {
+                    
+                    if(image != ""){
+                        print("Setting image from page with url \(image)")
+                        images[title] = (URL(string: image)!)
+                        self.imagedAdded()
+                    }
+                    else{
+                        print("no image")
+                        images[title] = (URL(string: "notfound")!)
+                        self.imagedAdded()
+                    }
+                }
+            }
+        }
+    }
     
 
     func viewControllerAtIndex(_ index: Int, storyboard: UIStoryboard) -> DataViewController? {
