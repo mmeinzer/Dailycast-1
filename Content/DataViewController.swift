@@ -12,6 +12,7 @@ import SwiftyJSON
 import Kingfisher
 import WebKit
 import SwiftSoup
+import VICMAImageView
 
 extension NSMutableAttributedString {
     
@@ -66,8 +67,13 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.layer.zPosition = 1
+        imageView.contentMode = .scaleAspectFit
+        //make background average color/blured aspect fill version of image?
+
+       
         view.addSubview(imageView)
         
+ 
         
         headlineView.layer.zPosition = 2
         headlineView.isScrollEnabled = false
@@ -253,10 +259,13 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             spinner.startAnimating()
             self.view.addSubview(spinner)
             
-            let date = Date()
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy_MMM_dd"
+            let date = dateFormatter.date(from: globalDate)
+            
             let formatter = DateFormatter()
             formatter.dateFormat = "EEEE, MMM d, yyyy"
-            let result = formatter.string(from: date)
+            let result = formatter.string(from: date!)
             bgView.isHidden = true
             
             dateLabel.text = result

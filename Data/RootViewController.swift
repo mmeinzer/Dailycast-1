@@ -11,7 +11,7 @@ import UIKit
 class RootViewController: UIViewController, UIPageViewControllerDelegate {
 
     var pageViewController: UIPageViewController?
-
+    var date = ""
 
     override func viewDidLoad() {
         super.viewDidLoad()

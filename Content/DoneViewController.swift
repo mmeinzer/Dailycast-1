@@ -12,6 +12,8 @@ import M13Checkbox
 
 class DoneViewController: UIViewController{
     @IBOutlet weak var checkView: UIView!
+    @IBOutlet weak var yesterdayView: UIView!
+    @IBOutlet weak var yesterdayLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,7 +21,7 @@ class DoneViewController: UIViewController{
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        
+        super.viewDidAppear(animated)
         //setup
         let checkbox = M13Checkbox(frame: checkView.frame)
         checkbox.stateChangeAnimation = .stroke
@@ -29,26 +31,40 @@ class DoneViewController: UIViewController{
         checkbox.boxLineWidth = 8.0
         view.addSubview(checkbox)
         let success = UINotificationFeedbackGenerator()
+
+        yesterdayView.layer.cornerRadius = 2
+        yesterdayView.layer.zPosition = 2
+        let yesterdayTap = UITapGestureRecognizer(target: self, action: #selector(yesterdayTapped))
+        yesterdayView.addGestureRecognizer(yesterdayTap)
         
-        //run
-//        let today = Date()
-//
-//        if let finished = UserDefaults.standard.object(forKey: "finished") as? Date {
-//            if(today != finished){
-//                checkbox.toggleCheckState(true)
-//                success.notificationOccurred(.success)
-//            }
-//        }
-//        else{
-//            checkbox.toggleCheckState(true)
-//            success.notificationOccurred(.success)
-//        }
-//
-//        //finished today
-//        UserDefaults.standard.set(today, forKey: "finished")
+        
         
         checkbox.toggleCheckState(true)
         success.notificationOccurred(.success)
-
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy_MMM_dd"
+        let date = formatter.date(from: globalDate)
+        let previous = Calendar.current.date(byAdding: .day, value: -1, to: date!)
+        let simpleFormatter = DateFormatter()
+        simpleFormatter.dateFormat = "MMM d"
+        let buttonText = simpleFormatter.string(from: previous!)
+        yesterdayLabel.text = "See news for " + buttonText
+    }
+    
+    @objc func yesterdayTapped(){
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy_MMM_dd"
+        let date = formatter.date(from: globalDate)
+        let previous = Calendar.current.date(byAdding: .day, value: -1, to: date!)
+        globalDate = formatter.string(from: previous!)
+        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let rootViewController = storyboard.instantiateViewController(withIdentifier: "rootview") as! RootViewController
+        self.present(rootViewController, animated: true)
     }
 }

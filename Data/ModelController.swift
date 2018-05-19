@@ -25,6 +25,7 @@ import SwiftSoup
 
 var images: [String: URL] = [:]
 
+var globalDate = ""
 
 class ModelController: NSObject, UIPageViewControllerDataSource {
 
@@ -47,7 +48,13 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy_MMM_dd"
-        let result = formatter.string(from: date)
+        print("date is \(globalDate)")
+        var result = globalDate
+        if(globalDate == ""){
+            print("no date provided")
+            result = formatter.string(from: date)
+            globalDate = formatter.string(from: date)
+        }
 //        let result = "2018_May_16"
         Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Portal:Current_events/" + result).response{ response in
             if let data = response.data{
@@ -79,14 +86,24 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                                 
                                 if(self.topics.count < self.headlines.count){
                                     let topic = try element.select("a").first()?.attr("href")
-                                    self.topics.append(topic!)
+                                    if(topic?.contains("wiki"))!{
+                                        self.topics.append(topic!)
+                                    }
+                                    else{
+                                        self.topics.append("News")
+                                    }
                                 }
                             }
                             else{
                                 print("at else")
                                 if(self.topics.count < self.headlines.count + 1){
                                     let topic = try element.select("a").first()?.attr("href")
-                                    self.topics.append(topic!)
+                                    if(topic?.contains("wiki"))!{
+                                        self.topics.append(topic!)
+                                    }
+                                    else{
+                                        self.topics.append("News")
+                                    }
                                 }
                                 
                             }
@@ -172,12 +189,17 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                 let pageid: String = String(describing: dict.keys.first!)
                 let queryimages = json["query"]["pages"][pageid]["images"]
                 var image = ""
-                for i in 0...queryimages.count-1{
-                    let filepath = queryimages[i]["title"].string!
-                    let filetype = filepath.split(separator: ".").last!
-                    if(filetype != "svg" && filetype != "tif" && filetype != "webm"){
-                        image = "https://commons.wikimedia.org/wiki/Special:FilePath/" + filepath.split(separator: ":")[1].addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
-                        break //this sucks
+                if(queryimages.count == 0){
+                    image = ""
+                }
+                else{
+                    for i in 0...queryimages.count-1{
+                        let filepath = queryimages[i]["title"].string!
+                        let filetype = filepath.split(separator: ".").last!
+                        if(filetype != "svg" && filetype != "tif" && filetype != "webm"){
+                            image = "https://commons.wikimedia.org/wiki/Special:FilePath/" + filepath.split(separator: ":")[1].addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
+                            break //this sucks
+                        }
                     }
                 }
                 DispatchQueue.main.async() {
