@@ -12,7 +12,6 @@ import SwiftyJSON
 import Kingfisher
 import WebKit
 import SwiftSoup
-import VICMAImageView
 
 extension NSMutableAttributedString {
     
