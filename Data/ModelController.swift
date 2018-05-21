@@ -52,10 +52,12 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         var result = globalDate
         if(globalDate == ""){
             print("no date provided")
-            result = formatter.string(from: date)
-            globalDate = formatter.string(from: date)
+            let previous = Calendar.current.date(byAdding: .day, value: -1, to: date)
+            result = formatter.string(from: previous!)
+            globalDate = formatter.string(from: previous!)
         }
-//        let result = "2018_May_16"
+//       result = "2018_May_16" //THIS IS FOR DEBUG
+        
         Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Portal:Current_events/" + result).response{ response in
             if let data = response.data{
                 let json = JSON(data)
@@ -115,7 +117,6 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                         print("error")
                     }
                 }
-                self.arrayLoaded=true
                 DispatchQueue.main.async() {
                     self.getImages()
                 }
@@ -124,7 +125,6 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     }
     
     func getImages() {
-        var i = 0
         for element in self.topics.dropFirst(){
             let title = String(element.split(separator: "/").last!)
             self.getPageImage(title: title)
@@ -141,8 +141,10 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         }
         prefetcher.start()
         
+        arrayLoaded = true
         let nc = NotificationCenter.default
         nc.post(name: Notification.Name("resetCache"), object: nil)
+        
     }
     
     func imagedAdded(){
@@ -195,9 +197,11 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                 else{
                     for i in 0...queryimages.count-1{
                         let filepath = queryimages[i]["title"].string!
+                        print("checking \(filepath)")
                         let filetype = filepath.split(separator: ".").last!
                         if(filetype != "svg" && filetype != "tif" && filetype != "webm"){
-                            image = "https://commons.wikimedia.org/wiki/Special:FilePath/" + filepath.split(separator: ":")[1].addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
+//                            image = "https://commons.wikimedia.org/wiki/Special:FilePath/" + filepath.split(separator: ":")[1].addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!
+                            image = filepath
                             break //this sucks
                         }
                     }
@@ -206,8 +210,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                     
                     if(image != ""){
                         print("Setting image from page with url \(image)")
-                        images[title] = (URL(string: image)!)
-                        self.imagedAdded()
+                        self.tryForImage(filepath: image, title: title)
                     }
                     else{
                         print("no image")
@@ -219,8 +222,34 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         }
     }
     
+    func tryForImage(filepath: String, title: String){
+        
+        print("getting https://en.wikipedia.org/w/api.php?action=query&titles=" + filepath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)! + "&prop=imageinfo&iiprop=url&format=json")
+        
+        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + filepath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)! + "&prop=imageinfo&iiprop=url&format=json").response{ response in
+            if let data = response.data{
 
-    func viewControllerAtIndex(_ index: Int, storyboard: UIStoryboard) -> DataViewController? {
+                let newjson = JSON(data)
+                let dict = newjson["query"]["pages"].dictionaryValue
+                let pageid: String = String(describing: dict.keys.first!)
+                print("pageurlid: \(pageid)")
+                dump(newjson)
+                if let url = newjson["query"]["pages"][pageid]["imageinfo"][0]["url"].url{
+                    print("image = \(url)")
+                    images[title] = url
+                    self.imagedAdded()
+                }
+                else{
+                    print("no image")
+                    images[title] = (URL(string: "notfound")!)
+                    self.imagedAdded()
+                }
+            }
+        }
+    }
+    
+
+    func viewControllerAtIndex(_ index: Int, activityCleared: Bool, storyboard: UIStoryboard) -> DataViewController? {
         // Return the data view controller for the given index.
         if (self.topics.count == 0) || (index >= self.topics.count) {
             return nil
@@ -234,6 +263,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
             dataViewController.headlineSnippet = self.headlines[index]
             dataViewController.articleURL = self.urls[index]
             dataViewController.index = index
+            dataViewController.activityCleared = activityCleared
             return dataViewController
         }
         return nil
@@ -267,7 +297,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         }
         
         index -= 1
-        return self.viewControllerAtIndex(index, storyboard: viewController.storyboard!)
+        return self.viewControllerAtIndex(index, activityCleared: true, storyboard: viewController.storyboard!)
     }
 
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
@@ -289,7 +319,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
             return nil
         }
 
-        return self.viewControllerAtIndex(index, storyboard: viewController.storyboard!)
+        return self.viewControllerAtIndex(index, activityCleared: false, storyboard: viewController.storyboard!)
     }
     
 }

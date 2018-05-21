@@ -80,20 +80,20 @@ class ArticleViewController: UIViewController, WKNavigationDelegate, UIScrollVie
     
     @objc func shareTapped(_ sender : UIBarButtonItem){
         
-            let text = "Check out this article I read on Dailycast"
+        let text = "Check out this article I read on the Dailycast App: "
 
     
-            let activityViewController : UIActivityViewController = UIActivityViewController(
-                activityItems: [text, url], applicationActivities: [TUSafariActivity()])
+        let activityViewController : UIActivityViewController = UIActivityViewController(
+            activityItems: [text, url], applicationActivities: [TUSafariActivity()])
+
+        // This lines is for the popover you need to show in iPad
+        activityViewController.popoverPresentationController?.barButtonItem = sender
+        activityViewController.popoverPresentationController?.permittedArrowDirections = .up;
     
-            // This lines is for the popover you need to show in iPad
-            activityViewController.popoverPresentationController?.barButtonItem = sender
-            activityViewController.popoverPresentationController?.permittedArrowDirections = .up;
-        
-            // This line remove the arrow of the popover to show in iPad
-            activityViewController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection.up
-            activityViewController.popoverPresentationController?.sourceRect = CGRect(x: 150, y: 150, width: 0, height: 0)
-    
+        // This line remove the arrow of the popover to show in iPad
+        activityViewController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection.up
+        activityViewController.popoverPresentationController?.sourceRect = CGRect(x: 150, y: 150, width: 0, height: 0)
+
     
         self.present(activityViewController, animated: true, completion: nil)
 

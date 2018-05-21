@@ -37,7 +37,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
     @IBOutlet weak var topLabel: UILabel!
     @IBOutlet weak var headlineView: UITextView!
     
-    
+    var activityCleared = false
     var imageURL: URL?
     var dataObject: String = ""
     var headlineSnippet: String = ""
@@ -55,26 +55,23 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
     var spinner: UIActivityIndicatorView!
     var linkArray: [URL] = []
     var backgroundAttempt = 0
-    
+    var blurEffectView: UIVisualEffectView!
+    var logoView: UIImageView!
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
         print("index \(index)")
         
-        
-        imageView = UIImageView(frame: view.frame)
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.layer.zPosition = 1
-        imageView.contentMode = .scaleAspectFit
-        //make background average color/blured aspect fill version of image?
+        let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.regular)
+        blurEffectView = UIVisualEffectView(effect: blurEffect)
+        blurEffectView.frame = view.bounds
+        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        blurEffectView.layer.zPosition = 0
+        view.addSubview(blurEffectView)
+        blurEffectView.isHidden = true
 
-       
-        view.addSubview(imageView)
-        
- 
-        
         headlineView.layer.zPosition = 2
         headlineView.isScrollEnabled = false
         headlineView.isEditable = false
@@ -100,10 +97,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         placeholderView.image = UIImage(named: "news")
         placeholderView.layer.zPosition = 0
         self.view.addSubview(placeholderView)
-        
-        setBackground() //have this fetch the next background
 
-        
         let nc = NotificationCenter.default
         nc.addObserver(self, selector: #selector(clearActivity), name: Notification.Name("resetCache"), object: nil)
         
@@ -113,10 +107,26 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         topView.layer.zPosition = 2
         let topTap = UITapGestureRecognizer(target: self, action: #selector(topTapped))
         topView.addGestureRecognizer(topTap)
+        topView.isUserInteractionEnabled = true
+        
         
         let sanatize = dataObject.split(separator: "/").last?.replacingOccurrences(of: "_", with: " ")
         topText.text = String(sanatize!).removingPercentEncoding
         
+        
+        //set logo
+        var dim = (self.view.frame.maxY - 42 - dateLabel.frame.maxY)/2
+        if(view.frame.width < dim){
+            dim = view.frame.width - 32
+        }
+        logoView = UIImageView(frame: CGRect(x: 0, y: 0, width: dim, height: dim))
+        logoView.center = view.center
+        logoView.center.y += 32
+        logoView.layer.zPosition = 1
+        logoView.image = UIImage(named: "logo")
+        view.addSubview(logoView)
+        
+        setBackground()
     }
     
     func textView(_ textView: UITextView, shouldInteractWith slug: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
@@ -243,6 +253,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         label.font = UIFont(name: "HelveticaNeue-MediumItalic", size: 28.0)
         label.textColor = UIColor.white
         self.view.addSubview(label)
+        activityCleared = true
         
     }
     
@@ -254,18 +265,25 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             arrowImage.isHidden = true
             topView.isHidden = true
             
-            spinner.isHidden = false
-            spinner.center = CGPoint(x: self.view.frame.midX, y: self.view.frame.maxY - 42)
-            spinner.startAnimating()
-            self.view.addSubview(spinner)
+            if(!activityCleared){
+                spinner.isHidden = false
+                spinner.center = CGPoint(x: self.view.frame.midX, y: self.view.frame.maxY - 42)
+                spinner.startAnimating()
+                self.view.addSubview(spinner)
+            }
+            else{
+                clearActivity()
+            }
             
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy_MMM_dd"
             let date = dateFormatter.date(from: globalDate)
-            
+            let next = Calendar.current.date(byAdding: .day, value: 1, to: date!)
+
             let formatter = DateFormatter()
             formatter.dateFormat = "EEEE, MMM d, yyyy"
-            let result = formatter.string(from: date!)
+            
+            let result = formatter.string(from: next!)
             bgView.isHidden = true
             
             dateLabel.text = result
@@ -273,24 +291,36 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             dateLabel.textAlignment = .center
             dateLabel.textColor = UIColor.white
             
-            self.view.addSubview(dateLabel)
+            view.addSubview(dateLabel)
             
             placeholderView.isHidden = true
             
-
+            let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
+            if launchedBefore  {
+                print("Not first launch.")
+                instructions.isHidden = true
+                logoView.isHidden = false
+            } else {
+                print("First launch, setting UserDefault.")
+                UserDefaults.standard.set(true, forKey: "launchedBefore")
+                instructions.isHidden = false
+            }
+            let logoTapRec = UITapGestureRecognizer(target: self, action: #selector(logoTap))
+            view.addGestureRecognizer(logoTapRec)
+            
         }
         else{
             topLabel.isHidden = true
             dateLabel.isHidden = true
             instructions.isHidden = true
-            imageView.kf.indicatorType = .activity
+            logoView.isHidden = true
 
             let title = String(dataObject.split(separator: "/").last!)
             imageURL = images[title]
             
             if(imageURL?.absoluteString != "notfound"){
                 print("image background")
-                print(imageURL)
+                print(imageURL!)
                 
                 let activity = UIActivityIndicatorView()
                 activity.activityIndicatorViewStyle = .white
@@ -301,11 +331,34 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
                 activity.startAnimating()
                 self.view.addSubview(activity)
                 
+                
+                imageView = UIImageView(frame: view.frame)
+                imageView.clipsToBounds = true
+                imageView.layer.zPosition = 1
+                
                 self.imageView.kf.setImage(with: imageURL, completionHandler: { (image, error, cacheType, imageUrl) in
                     if(image != nil){
+                        print("image dimensions:")
+                        let size = image?.size
+                        
+                        if(Int((size?.height)!) > Int(((size?.width)!*0.5))){ //if height is more than half the width
+                            self.imageView.contentMode = .scaleAspectFill
+//                            self.imageView.contentMode = .center
+                        }
+                        else{
+                            self.imageView.contentMode = .scaleAspectFit
+                            self.imageView.frame.insetBy(dx: 10, dy: 10)
+                            self.imageView.transform = CGAffineTransform(translationX: 0.0, y: -self.headlineView.frame.height / 2 ) //set between headline and topic
+                        }
+                        
+                        self.view.addSubview(self.imageView)
+
                         activity.stopAnimating()
                         activity.removeFromSuperview()
-                        self.placeholderView.isHidden = false
+                        self.placeholderView.isHidden = true
+                        self.view.backgroundColor = UIColor(patternImage: image!)
+                        self.blurEffectView.isHidden = false
+
                     }
                     else{
                         activity.stopAnimating()
@@ -318,8 +371,14 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             }
 
         }
+        view.sendSubview(toBack: blurEffectView)
     }
     
+    @objc func logoTap(sender: UITapGestureRecognizer){
+        print("logo tap")
+        instructions.isHidden = false
+        logoView.isHidden = true
+    }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent

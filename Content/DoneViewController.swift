@@ -48,10 +48,10 @@ class DoneViewController: UIViewController{
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy_MMM_dd"
         let date = formatter.date(from: globalDate)
-        let previous = Calendar.current.date(byAdding: .day, value: -1, to: date!)
         let simpleFormatter = DateFormatter()
         simpleFormatter.dateFormat = "MMM d"
-        let buttonText = simpleFormatter.string(from: previous!)
+        let buttonText = simpleFormatter.string(from: date!)
+        
         yesterdayLabel.text = "See news for " + buttonText
     }
     
