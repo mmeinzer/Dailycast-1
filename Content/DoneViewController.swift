@@ -9,20 +9,23 @@
 import Foundation
 import UIKit
 import M13Checkbox
+import SwiftyRate
 
-class DoneViewController: UIViewController{
+class DoneViewController: UIViewController, UIGestureRecognizerDelegate{
     @IBOutlet weak var checkView: UIView!
     @IBOutlet weak var yesterdayView: UIView!
     @IBOutlet weak var yesterdayLabel: UILabel!
+    var swipeLeft: UISwipeGestureRecognizer!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         //setup
+        SwiftyRate.request(from: self, afterAppLaunches: 5)
+
         let checkbox = M13Checkbox(frame: checkView.frame)
         checkbox.stateChangeAnimation = .stroke
         checkbox.tintColor = UIColor(red:0.15, green:0.68, blue:0.38, alpha:1.0)
@@ -37,10 +40,23 @@ class DoneViewController: UIViewController{
         let yesterdayTap = UITapGestureRecognizer(target: self, action: #selector(yesterdayTapped))
         yesterdayView.addGestureRecognizer(yesterdayTap)
         
+        swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipedLeftAction))
+        swipeLeft.direction = .left
+        swipeLeft.delegate = self
+        view.addGestureRecognizer(swipeLeft)
         
         
         checkbox.toggleCheckState(true)
         success.notificationOccurred(.success)
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
+    @objc func swipedLeftAction(){
+        print("swipe left")
+        yesterdayTapped()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -65,6 +81,15 @@ class DoneViewController: UIViewController{
         
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let rootViewController = storyboard.instantiateViewController(withIdentifier: "rootview") as! RootViewController
-        self.present(rootViewController, animated: true)
+
+        let transition = CATransition()
+        transition.duration = 0.3
+        
+        transition.type = kCATransitionPush
+        transition.subtype = kCATransitionFromRight
+        transition.timingFunction = CAMediaTimingFunction(name:kCAMediaTimingFunctionEaseInEaseOut)
+        view.window!.layer.add(transition, forKey: kCATransition)
+
+        self.present(rootViewController, animated: false)
     }
 }

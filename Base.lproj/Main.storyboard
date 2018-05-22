@@ -168,11 +168,21 @@
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i1F-Dg-tJz">
                                 <rect key="frame" x="8" y="276" width="359" height="116.5"/>
-                                <string key="text">👈👉Swipe left or right for more news☝️Swipe up to read more👆Tap bold text to learn more</string>
+                                <string key="text">👈👉Swipe left or right for more news
+
+☝️Swipe up to read more
+
+👆Tap bold text to learn more</string>
                                 <fontDescription key="fontDescription" name="Avenir-Book" family="Avenir" pointSize="17"/>
                                 <color key="textColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="QPx-b6-Ujd">
+                                <rect key="frame" x="45.5" y="224" width="283" height="283"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="QPx-b6-Ujd" secondAttribute="height" multiplier="1:1" id="sJG-bU-zv9"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -184,6 +194,7 @@
                             <constraint firstItem="W6y-BS-fAJ" firstAttribute="top" secondItem="9AW-t8-dZH" secondAttribute="bottom" constant="16" id="Jn2-rr-kEi"/>
                             <constraint firstItem="Isw-NV-MAj" firstAttribute="top" secondItem="K9I-jD-KjA" secondAttribute="top" constant="16" id="N2E-Pm-0aS"/>
                             <constraint firstItem="HYT-ug-w9u" firstAttribute="top" secondItem="q9G-Po-dSl" secondAttribute="bottom" constant="30" id="Ncu-Nk-Rng"/>
+                            <constraint firstItem="QPx-b6-Ujd" firstAttribute="width" secondItem="ZwX-cT-FIQ" secondAttribute="width" constant="-92" id="RTg-Sz-Bx0"/>
                             <constraint firstItem="q9G-Po-dSl" firstAttribute="leading" secondItem="K9I-jD-KjA" secondAttribute="leading" id="TbA-ac-EYP"/>
                             <constraint firstItem="i1F-Dg-tJz" firstAttribute="leading" secondItem="K9I-jD-KjA" secondAttribute="leading" constant="8" id="Urz-1y-KSt"/>
                             <constraint firstItem="q9G-Po-dSl" firstAttribute="top" secondItem="K9I-jD-KjA" secondAttribute="top" constant="18" id="bJY-Mg-89U"/>
@@ -192,6 +203,8 @@
                             <constraint firstItem="W6y-BS-fAJ" firstAttribute="centerX" secondItem="ZwX-cT-FIQ" secondAttribute="centerX" id="frm-Ev-Ues"/>
                             <constraint firstItem="HYT-ug-w9u" firstAttribute="leading" secondItem="K9I-jD-KjA" secondAttribute="leading" id="jrp-bM-6Rk"/>
                             <constraint firstItem="K9I-jD-KjA" firstAttribute="trailing" secondItem="Isw-NV-MAj" secondAttribute="trailing" constant="16" id="kZg-e9-SmY"/>
+                            <constraint firstItem="QPx-b6-Ujd" firstAttribute="centerY" secondItem="ZwX-cT-FIQ" secondAttribute="centerY" constant="32" id="mgo-Pp-6DY"/>
+                            <constraint firstItem="QPx-b6-Ujd" firstAttribute="centerX" secondItem="ZwX-cT-FIQ" secondAttribute="centerX" id="q01-l9-qR2"/>
                             <constraint firstItem="K9I-jD-KjA" firstAttribute="trailing" secondItem="9AW-t8-dZH" secondAttribute="trailing" constant="16" id="rN6-SM-0zH"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="K9I-jD-KjA"/>
@@ -200,8 +213,10 @@
                         <outlet property="arrowImage" destination="W6y-BS-fAJ" id="AyL-cW-PyM"/>
                         <outlet property="bgView" destination="9AW-t8-dZH" id="GUx-1R-tCz"/>
                         <outlet property="dateLabel" destination="HYT-ug-w9u" id="cUy-xz-iq0"/>
+                        <outlet property="headlineHeight" destination="cys-QD-DIz" id="lmU-Zk-fiy"/>
                         <outlet property="headlineView" destination="E4p-je-uJk" id="dgD-Ne-8Cy"/>
                         <outlet property="instructions" destination="i1F-Dg-tJz" id="dse-9X-OA2"/>
+                        <outlet property="logoView" destination="QPx-b6-Ujd" id="dH2-Hh-KeT"/>
                         <outlet property="topLabel" destination="q9G-Po-dSl" id="h7Q-mt-eut"/>
                         <outlet property="topText" destination="co6-e1-2DM" id="CZp-oT-9zG"/>
                         <outlet property="topView" destination="Isw-NV-MAj" id="AII-RA-g9v"/>
@@ -225,8 +240,11 @@
                                 <color key="textColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Come back tomorrow for more news" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eH8-QR-3fI">
-                                <rect key="frame" x="49" y="127.5" width="277.5" height="23.5"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eH8-QR-3fI">
+                                <rect key="frame" x="49.5" y="127.5" width="277.5" height="70"/>
+                                <string key="text">You're all caught up!
+
+Come back tomorrow for more news</string>
                                 <fontDescription key="fontDescription" name="Avenir-BookOblique" family="Avenir" pointSize="17"/>
                                 <color key="textColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
@@ -240,7 +258,7 @@
                                 </constraints>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="n6g-Jr-yZd">
-                                <rect key="frame" x="93.5" y="465" width="187.5" height="40"/>
+                                <rect key="frame" x="93.5" y="473" width="187.5" height="40"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Previous Day's News" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="42B-hL-10q">
                                         <rect key="frame" x="8" y="8" width="171.5" height="24"/>
@@ -263,7 +281,7 @@
                             <constraint firstItem="eH8-QR-3fI" firstAttribute="top" secondItem="S9M-79-tb9" secondAttribute="bottom" constant="18" id="2fd-Lm-TKZ"/>
                             <constraint firstItem="jQg-W7-FIa" firstAttribute="trailing" secondItem="S9M-79-tb9" secondAttribute="trailing" id="3Lj-vr-geZ"/>
                             <constraint firstItem="ExW-CO-BVP" firstAttribute="centerY" secondItem="QCn-ob-L2e" secondAttribute="centerY" id="IwQ-fO-Tra"/>
-                            <constraint firstItem="n6g-Jr-yZd" firstAttribute="top" secondItem="ExW-CO-BVP" secondAttribute="bottom" constant="42" id="LdW-xy-NZc"/>
+                            <constraint firstItem="n6g-Jr-yZd" firstAttribute="top" secondItem="ExW-CO-BVP" secondAttribute="bottom" constant="50" id="LdW-xy-NZc"/>
                             <constraint firstItem="n6g-Jr-yZd" firstAttribute="centerX" secondItem="QCn-ob-L2e" secondAttribute="centerX" id="M9A-3x-CIK"/>
                             <constraint firstItem="eH8-QR-3fI" firstAttribute="centerX" secondItem="QCn-ob-L2e" secondAttribute="centerX" id="YmA-FT-0SU"/>
                             <constraint firstItem="ExW-CO-BVP" firstAttribute="centerX" secondItem="QCn-ob-L2e" secondAttribute="centerX" id="ZNa-cA-qz3"/>
@@ -281,63 +299,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Y5f-z6-r6K" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1447.2" y="-239.73013493253376"/>
-        </scene>
-        <!--Article View Controller-->
-        <scene sceneID="9IZ-Ml-ULp">
-            <objects>
-                <viewController storyboardIdentifier="ArticleViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="LaC-Pz-c3X" customClass="ArticleViewController" customModule="Dailycast" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="DIe-o4-6ma">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <wkWebView contentMode="scaleToFill" allowsBackForwardNavigationGestures="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xvC-Oc-OhM">
-                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
-                                <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <wkWebViewConfiguration key="configuration">
-                                    <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
-                                    <wkPreferences key="preferences"/>
-                                </wkWebViewConfiguration>
-                            </wkWebView>
-                            <navigationBar contentMode="scaleToFill" translucent="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cfq-9p-2Ea">
-                                <rect key="frame" x="0.0" y="20" width="375" height="44"/>
-                                <items>
-                                    <navigationItem title="Title" id="YoO-N1-b44"/>
-                                </items>
-                            </navigationBar>
-                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="47s-Fp-w1d">
-                                <rect key="frame" x="0.0" y="64" width="375" height="4"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="4" id="3AQ-Kx-ieb"/>
-                                </constraints>
-                            </progressView>
-                        </subviews>
-                        <color key="backgroundColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <constraints>
-                            <constraint firstAttribute="trailing" secondItem="47s-Fp-w1d" secondAttribute="trailing" id="4L9-Iq-V6s"/>
-                            <constraint firstItem="cfq-9p-2Ea" firstAttribute="trailing" secondItem="YC5-6G-r8n" secondAttribute="trailing" id="4Us-Xb-CEj"/>
-                            <constraint firstItem="cfq-9p-2Ea" firstAttribute="top" secondItem="YC5-6G-r8n" secondAttribute="top" id="8wZ-gF-oIs"/>
-                            <constraint firstItem="cfq-9p-2Ea" firstAttribute="leading" secondItem="YC5-6G-r8n" secondAttribute="leading" id="CA0-0d-PB4"/>
-                            <constraint firstItem="47s-Fp-w1d" firstAttribute="top" secondItem="cfq-9p-2Ea" secondAttribute="bottom" id="Dlp-gu-VqU"/>
-                            <constraint firstItem="xvC-Oc-OhM" firstAttribute="trailing" secondItem="YC5-6G-r8n" secondAttribute="trailing" id="SgP-Vo-GPL"/>
-                            <constraint firstItem="YC5-6G-r8n" firstAttribute="bottom" secondItem="cfq-9p-2Ea" secondAttribute="bottom" constant="603" id="UzY-2F-imC"/>
-                            <constraint firstItem="xvC-Oc-OhM" firstAttribute="leading" secondItem="YC5-6G-r8n" secondAttribute="leading" id="ctL-Ua-OH4"/>
-                            <constraint firstItem="xvC-Oc-OhM" firstAttribute="bottom" secondItem="YC5-6G-r8n" secondAttribute="bottom" id="dJ5-GZ-7ax"/>
-                            <constraint firstItem="xvC-Oc-OhM" firstAttribute="top" secondItem="cfq-9p-2Ea" secondAttribute="bottom" id="lBO-Kc-8kC"/>
-                            <constraint firstItem="47s-Fp-w1d" firstAttribute="leading" secondItem="DIe-o4-6ma" secondAttribute="leading" id="yZE-05-RUW"/>
-                        </constraints>
-                        <viewLayoutGuide key="safeArea" id="YC5-6G-r8n"/>
-                    </view>
-                    <connections>
-                        <outlet property="navBar" destination="cfq-9p-2Ea" id="ZCs-fO-0Dm"/>
-                        <outlet property="pageTitle" destination="YoO-N1-b44" id="bvX-zH-qGx"/>
-                        <outlet property="progressHeight" destination="3AQ-Kx-ieb" id="zPs-G5-lYf"/>
-                        <outlet property="progressView" destination="47s-Fp-w1d" id="Kv8-fF-rOs"/>
-                        <outlet property="webView" destination="xvC-Oc-OhM" id="ohz-6H-j3U"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="W6P-hU-A7Y" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="565.60000000000002" y="448.42578710644682"/>
         </scene>
     </scenes>
     <resources>

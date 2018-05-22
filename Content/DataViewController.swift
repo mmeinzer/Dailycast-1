@@ -10,8 +10,9 @@ import UIKit
 import Alamofire
 import SwiftyJSON
 import Kingfisher
-import WebKit
 import SwiftSoup
+import SafariServices
+
 
 extension NSMutableAttributedString {
     
@@ -30,7 +31,7 @@ extension NSMutableAttributedString {
 
 
 
-class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDelegate{
+class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecognizerDelegate{
 
     @IBOutlet weak var arrowImage: UIImageView!
     @IBOutlet weak var topLabel: UILabel!
@@ -51,18 +52,19 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
     var placeholderView: UIImageView!
     var imageView: UIImageView!
     var swipeUp: UISwipeGestureRecognizer!
+    var swipeLeft: UISwipeGestureRecognizer!
     var spinner: UIActivityIndicatorView!
     var linkArray: [URL] = []
     var backgroundAttempt = 0
     var blurEffectView: UIVisualEffectView!
-    var logoView: UIImageView!
+    @IBOutlet weak var logoView: UIImageView!
+    @IBOutlet weak var headlineHeight: NSLayoutConstraint!
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
-        print("index \(index)")
-        
+                
         let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.regular)
         blurEffectView = UIVisualEffectView(effect: blurEffect)
         blurEffectView.frame = view.bounds
@@ -86,6 +88,11 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         swipeUp.direction = .up
         view.addGestureRecognizer(swipeUp)
         
+        swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipedLeftAction))
+        swipeLeft.direction = .right
+        swipeLeft.delegate = self
+        view.addGestureRecognizer(swipeLeft)
+        
         //initial spinner
         spinner = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
         spinner.isHidden = true
@@ -108,6 +115,10 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         topView.addGestureRecognizer(topTap)
         topView.isUserInteractionEnabled = true
         
+        let arrowTap = UITapGestureRecognizer(target: self, action: #selector(swipedAction))
+        arrowImage.addGestureRecognizer(arrowTap)
+        arrowImage.isUserInteractionEnabled = true
+        
         
         let sanatize = dataObject.split(separator: "/").last?.replacingOccurrences(of: "_", with: " ")
         topText.text = String(sanatize!).removingPercentEncoding
@@ -118,12 +129,9 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         if(view.frame.width < dim){
             dim = view.frame.width - 32
         }
-        logoView = UIImageView(frame: CGRect(x: 0, y: 0, width: dim, height: dim))
-        logoView.center = view.center
-        logoView.center.y += 32
-        logoView.layer.zPosition = 1
         logoView.image = UIImage(named: "logo")
-        view.addSubview(logoView)
+ 
+
         
         setBackground()
     }
@@ -133,10 +141,8 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
         print(slug)
         print(slug.path)
         
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
-        articleViewController.url = URL(string: "https://en.wikipedia.org" + slug.path.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)!)
-        self.present(articleViewController, animated: true)
+        let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + slug.path.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)!)!)
+        self.present(svc, animated: true, completion: nil)
         
         return true
     }
@@ -144,19 +150,73 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
     
     @objc func swipedAction(){
         print("swipe")
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
-        articleViewController.url = articleURL
+
         if(index != 0){
-            self.present(articleViewController, animated: true)
+            
+            if #available(iOS 11.0, *) {
+                let config = SFSafariViewController.Configuration()
+                config.entersReaderIfAvailable = true
+                let svc = SFSafariViewController(url: articleURL!, configuration: config)
+                svc.modalPresentationStyle = UIModalPresentationStyle.overFullScreen
+                self.present(svc, animated: true, completion: nil)
+            } else {
+                let svc = SFSafariViewController(url: articleURL!, entersReaderIfAvailable: true)
+                svc.modalPresentationStyle = UIModalPresentationStyle.overFullScreen
+                self.present(svc, animated: true, completion: nil)
+            }
+        }
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
+    @objc func swipedLeftAction(){
+        print("swipe left")
+        
+        if(index == 0){
+            
+            let today = Date()
+            let nexttoday = Calendar.current.date(byAdding: .day, value: -1, to: today)
+
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy_MMM_dd"
+            let date = formatter.date(from: globalDate)
+            
+            let todaystring = formatter.string(from: nexttoday!)
+            
+            if(todaystring != globalDate){
+                let next = Calendar.current.date(byAdding: .day, value: 1, to: date!)
+                globalDate = formatter.string(from: next!)
+                
+                let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                let rootViewController = storyboard.instantiateViewController(withIdentifier: "rootview") as! RootViewController
+                
+                let transition = CATransition()
+                transition.duration = 0.3
+                
+                transition.type = kCATransitionPush
+                transition.subtype = kCATransitionFromLeft
+                transition.timingFunction = CAMediaTimingFunction(name:kCAMediaTimingFunctionEaseInEaseOut)
+                view.window!.layer.add(transition, forKey: kCATransition)
+                
+                self.present(rootViewController, animated: false)
+                
+                print(todaystring)
+                print("isnt")
+                print(globalDate)
+                
+            }
+            
+            
+           
         }
     }
     
     @objc func topTapped(){
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let articleViewController = storyboard.instantiateViewController(withIdentifier: "ArticleViewController") as! ArticleViewController
-        articleViewController.url = URL(string: "https://en.wikipedia.org" + dataObject)
-        self.present(articleViewController, animated: true)
+            let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + dataObject)!)
+            self.present(svc, animated: true, completion: nil)
     }
     
 
@@ -200,12 +260,9 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             NSAttributedStringKey.underlineColor.rawValue: UIColor.clear]
         self.headlineView.linkTextAttributes = linkAttributes
         
-        let activeLinkAttributes: [String : Any] = [
-            NSAttributedStringKey.foregroundColor.rawValue: UIColor.blue,
-            NSAttributedStringKey.underlineColor.rawValue: UIColor.blue]
         
         
-        while(headlineView.contentSize.height > 146){
+        while(headlineView.contentSize.height > 146 && font > 15){
             font -= 1
             let resizedText = NSMutableAttributedString(attributedString: headlineView.attributedText)
             resizedText.removeAttribute(NSAttributedStringKey.font, range: NSRange(0..<resizedText.length))
@@ -224,6 +281,23 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             }
             self.headlineView.attributedText = newString
         }
+        
+        if(headlineView.contentSize.height > headlineHeight.constant){
+            while(headlineView.contentSize.height + 12 > headlineHeight.constant){
+                print("increasing headline size")
+                headlineHeight.constant += 2
+                self.view.layoutIfNeeded()
+            }
+        }
+        else{
+            while(headlineView.contentSize.height + 12 < headlineHeight.constant){
+                print("decreasing headline size")
+                headlineHeight.constant -= 1
+                self.view.layoutIfNeeded()
+            }
+        }
+        
+        
         
         
         headlineView.isScrollEnabled = false
@@ -294,21 +368,33 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
             
             placeholderView.isHidden = true
             
-            let launchedBefore = UserDefaults.standard.bool(forKey: "launchedBefore")
-            if launchedBefore  {
-                print("Not first launch.")
+            
+            let launchedBefore = UserDefaults.standard.integer(forKey: "launchedBefore")
+            if(launchedBefore == nil){
+                print("First launch, setting UserDefault.")
+                UserDefaults.standard.set(0, forKey: "launchedBefore")
+                instructions.isHidden = false
+                logoView.isHidden = true
+            }
+            else if (launchedBefore > 3)  {
+                print("More than 3 times")
                 instructions.isHidden = true
                 logoView.isHidden = false
+                UserDefaults.standard.set(launchedBefore + 1, forKey: "launchedBefore")
             } else {
-                print("First launch, setting UserDefault.")
-                UserDefaults.standard.set(true, forKey: "launchedBefore")
+                print("Incrementing launch userDefault.")
+                UserDefaults.standard.set(launchedBefore + 1, forKey: "launchedBefore")
                 instructions.isHidden = false
+                logoView.isHidden = true
             }
+            
             let logoTapRec = UITapGestureRecognizer(target: self, action: #selector(logoTap))
             view.addGestureRecognizer(logoTapRec)
             
         }
         else{
+            
+            
             topLabel.isHidden = true
             dateLabel.isHidden = true
             instructions.isHidden = true
@@ -351,7 +437,7 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
                         }
                         
                         self.view.addSubview(self.imageView)
-
+                        
                         activity.stopAnimating()
                         activity.removeFromSuperview()
                         self.placeholderView.isHidden = true
@@ -375,8 +461,14 @@ class DataViewController: UIViewController, WKNavigationDelegate, UITextViewDele
     
     @objc func logoTap(sender: UITapGestureRecognizer){
         print("logo tap")
-        instructions.isHidden = false
-        logoView.isHidden = true
+        if(logoView.isHidden){
+            instructions.isHidden = true
+            logoView.isHidden = false
+        }
+        else{
+            instructions.isHidden = false
+            logoView.isHidden = true
+        }
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
