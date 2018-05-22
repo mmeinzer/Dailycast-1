@@ -156,12 +156,13 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
             if #available(iOS 11.0, *) {
                 let config = SFSafariViewController.Configuration()
                 config.entersReaderIfAvailable = true
+//                config.status
                 let svc = SFSafariViewController(url: articleURL!, configuration: config)
-                svc.modalPresentationStyle = UIModalPresentationStyle.overFullScreen
+                svc.modalPresentationStyle = UIModalPresentationStyle.pageSheet
                 self.present(svc, animated: true, completion: nil)
             } else {
                 let svc = SFSafariViewController(url: articleURL!, entersReaderIfAvailable: true)
-                svc.modalPresentationStyle = UIModalPresentationStyle.overFullScreen
+                svc.modalPresentationStyle = UIModalPresentationStyle.pageSheet
                 self.present(svc, animated: true, completion: nil)
             }
         }
