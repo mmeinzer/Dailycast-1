@@ -153,10 +153,15 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
 
         if(index != 0){
             
-            let svc = SFSafariViewController(url: articleURL!)
-            svc.modalPresentationStyle = UIModalPresentationStyle.pageSheet
-            self.present(svc, animated: true, completion: nil)
-            
+            //pop out for legal reasons :(
+            UIApplication.shared.open(articleURL!, options: [:], completionHandler: { (status) in
+
+            })
+//
+//                let svc = SFSafariViewController(url: articleURL!)
+//                svc.modalPresentationStyle = UIModalPresentationStyle.pageSheet
+//                self.present(svc, animated: true, completion: nil)
+                
 
         }
     }
