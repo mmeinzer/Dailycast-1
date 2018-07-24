@@ -27,6 +27,22 @@ var images: [String: URL] = [:]
 
 var globalDate = ""
 
+extension UIPageViewController {
+    
+    func goToNextPage(animated: Bool = true) {
+        guard let currentViewController = self.viewControllers?.first else { return }
+        guard let nextViewController = dataSource?.pageViewController(self, viewControllerAfter: currentViewController) else { return }
+        setViewControllers([nextViewController], direction: .forward, animated: animated, completion: nil)
+    }
+    
+    func goToPreviousPage(animated: Bool = true) {
+        guard let currentViewController = self.viewControllers?.first else { return }
+        guard let previousViewController = dataSource?.pageViewController(self, viewControllerBefore: currentViewController) else { return }
+        setViewControllers([previousViewController], direction: .reverse, animated: animated, completion: nil)
+    }
+    
+}
+
 class ModelController: NSObject, UIPageViewControllerDataSource {
 
     
@@ -36,9 +52,12 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     var arrayLoaded = false
     var count = 0
     
+
+    
     override init() {
         super.init()
         getHeadlines()
+ 
     }
     
     
@@ -47,7 +66,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         
         let date = Date()
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy_MMM_dd"
+        formatter.dateFormat = "yyyy_MMMM_dd"
         print("date is \(globalDate)")
         var result = globalDate
         if(globalDate == ""){
@@ -61,6 +80,8 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Portal:Current_events/" + result).response{ response in
             if let data = response.data{
                 let json = JSON(data)
+                print(result)
+                print(json["parse"]["text"]["*"])
                 let fullhtml = json["parse"]["text"]["*"].string!
                 let separator = """
                 <div role=\"heading\"
@@ -279,19 +300,31 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
 
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
         var index = 0
+
         if(viewController.classForCoder == DataViewController.self){
             index = self.indexOfViewController(viewController as! DataViewController)
         }
-        
-//        if (index == 0) {
-//            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-//            let interestsViewController = storyboard.instantiateViewController(withIdentifier: "InterestsViewController") as! InterestsViewController
-//            return interestsViewController
-//        }
-//        else if(index == NSNotFound){
-//            return nil
-//        }
+        else if(viewController.classForCoder == InterestsViewController.self){
+            return nil
+        }
 
+        if (index == 0) {
+            
+            let date = Date()
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy_MMMM_dd"
+            let previous = Calendar.current.date(byAdding: .day, value: -1, to: date)
+            let result = formatter.string(from: previous!)
+            if(result == globalDate){
+                let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                let interestsViewController = storyboard.instantiateViewController(withIdentifier: "InterestsViewController") as! InterestsViewController
+                return interestsViewController
+            }
+        }
+        else if(index == NSNotFound){
+            return nil
+        }
+        
         if(index == NSNotFound){
             return nil
         }
@@ -305,6 +338,11 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         if(viewController.classForCoder == DataViewController.self){
             index = self.indexOfViewController(viewController as! DataViewController)
         }
+        else if(viewController.classForCoder == InterestsViewController.self){
+            return self.viewControllerAtIndex(0, activityCleared: false, storyboard: viewController.storyboard!)
+
+        }
+        
         if (index == NSNotFound || arrayLoaded == false) {
             return nil
         }

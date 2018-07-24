@@ -60,7 +60,8 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
     @IBOutlet weak var logoView: UIImageView!
     @IBOutlet weak var headlineHeight: NSLayoutConstraint!
     
-
+    @IBOutlet var actionView: UIView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -130,6 +131,10 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
             dim = view.frame.width - 32
         }
         logoView.image = UIImage(named: "logo")
+        
+        actionView.layer.cornerRadius = 4.0
+        actionView.layer.masksToBounds = true
+        actionView.isHidden = true
  
 
         
@@ -152,11 +157,15 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         print("swipe")
 
         if(index != 0){
-
-
-                let svc = SFSafariViewController(url: articleURL!)
-                svc.modalPresentationStyle = UIModalPresentationStyle.pageSheet
-                self.present(svc, animated: true, completion: nil)
+            
+//            //pop out for legal reasons :(
+//            UIApplication.shared.open(articleURL!, options: [:], completionHandler: { (status) in
+//
+//            })
+////
+            let svc = SFSafariViewController(url: articleURL!)
+            svc.modalPresentationStyle = UIModalPresentationStyle.pageSheet
+            self.present(svc, animated: true, completion: nil)
             
 
         }
@@ -176,7 +185,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
 
 
             let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy_MMM_dd"
+            formatter.dateFormat = "yyyy_MMMM_dd"
             let date = formatter.date(from: globalDate)
             
             let todaystring = formatter.string(from: nexttoday!)
@@ -210,8 +219,15 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
     }
     
     @objc func topTapped(){
-            let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + dataObject)!)
-            self.present(svc, animated: true, completion: nil)
+        let feedbackGenerator = UISelectionFeedbackGenerator()
+        feedbackGenerator.selectionChanged()
+    
+        let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + dataObject)!)
+        
+        UIApplication.shared.statusBarStyle = UIStatusBarStyle.default
+        svc.setNeedsStatusBarAppearanceUpdate()
+        
+        self.present(svc, animated: true, completion: nil)
     }
     
 
@@ -222,6 +238,9 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        UIApplication.shared.statusBarStyle = UIStatusBarStyle.lightContent
+        self.setNeedsStatusBarAppearanceUpdate()
         
         let noExt = headlineSnippet.components(separatedBy: "<a rel=\"nofollow\" class=\"external text\"")[0]
         let attrs = NSMutableAttributedString(html: noExt)
@@ -314,13 +333,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
     @objc func clearActivity(){
         spinner.stopAnimating()
         spinner.isHidden = true
-        let labelFrame = CGRect(x: 0, y: self.view.frame.maxY - 48, width: self.view.frame.width, height: 28)
-        let label = UILabel(frame: labelFrame)
-        label.text = "Swipe 👉"
-        label.textAlignment = .center
-        label.font = UIFont(name: "HelveticaNeue-MediumItalic", size: 28.0)
-        label.textColor = UIColor.white
-        self.view.addSubview(label)
+        actionView.isHidden = false
         activityCleared = true
         
     }
@@ -344,7 +357,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
             }
             
             let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy_MMM_dd"
+            dateFormatter.dateFormat = "yyyy_MMMM_dd"
             let date = dateFormatter.date(from: globalDate)
             let next = Calendar.current.date(byAdding: .day, value: 1, to: date!)
 
@@ -355,11 +368,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
             bgView.isHidden = true
             
             dateLabel.text = result
-            dateLabel.font = UIFont(name: "HelveticaNeue-Italic", size: 18.0)
             dateLabel.textAlignment = .center
-            dateLabel.textColor = UIColor.white
-            
-            view.addSubview(dateLabel)
             
             placeholderView.isHidden = true
             
@@ -370,17 +379,20 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
                 UserDefaults.standard.set(0, forKey: "launchedBefore")
                 instructions.isHidden = false
                 logoView.isHidden = true
+                topLabel.isHidden = true
             }
             else if (launchedBefore > 3)  {
                 print("More than 3 times")
                 instructions.isHidden = true
                 logoView.isHidden = false
+                topLabel.isHidden = false
                 UserDefaults.standard.set(launchedBefore + 1, forKey: "launchedBefore")
             } else {
                 print("Incrementing launch userDefault.")
                 UserDefaults.standard.set(launchedBefore + 1, forKey: "launchedBefore")
                 instructions.isHidden = false
                 logoView.isHidden = true
+                topLabel.isHidden = true
             }
             
             let logoTapRec = UITapGestureRecognizer(target: self, action: #selector(logoTap))
@@ -459,19 +471,19 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         if(logoView.isHidden){
             instructions.isHidden = true
             logoView.isHidden = false
+            topLabel.isHidden = false
         }
         else{
             instructions.isHidden = false
             logoView.isHidden = true
+            topLabel.isHidden = true
         }
     }
-    
-    override var preferredStatusBarStyle: UIStatusBarStyle {
+
+    override var preferredStatusBarStyle: UIStatusBarStyle{
         return .lightContent
     }
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
+
 
 }
 

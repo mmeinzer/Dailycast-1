@@ -20,6 +20,7 @@ class RootViewController: UIViewController, UIPageViewControllerDelegate {
         self.pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
         self.pageViewController!.delegate = self
 
+        
         let startingViewController: DataViewController = self.modelController.viewControllerAtIndex(0, activityCleared: false, storyboard: self.storyboard!)!
         let viewControllers = [startingViewController]
         self.pageViewController!.setViewControllers(viewControllers, direction: .forward, animated: false, completion: {done in })
@@ -40,7 +41,17 @@ class RootViewController: UIViewController, UIPageViewControllerDelegate {
         
         let nc = NotificationCenter.default
         nc.addObserver(self, selector: #selector(resetCache), name: Notification.Name("resetCache"), object: nil)
+        
+        if let launchedBefore = UserDefaults.standard.object(forKey: "launchedBefore"){
+            print("launched: \(launchedBefore)")
+        }
+        else{
+            print("moving")
+            pageViewController?.goToPreviousPage()
+        }
 
+        
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -94,10 +105,12 @@ class RootViewController: UIViewController, UIPageViewControllerDelegate {
 
         return .mid
     }
-
-    override var prefersStatusBarHidden: Bool {
-        return true
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle{
+        return .lightContent
     }
+    
+
 
 }
 

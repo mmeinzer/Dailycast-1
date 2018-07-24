@@ -13,21 +13,36 @@ import M13Checkbox
  class InterestsTableCell: UITableViewCell{
     @IBOutlet weak var subjectLabel: UILabel!
     @IBOutlet weak var checkView: UIView!
-    var checkbox: M13Checkbox?
+    var checkbox: M13Checkbox!
+    
+    override func layoutSubviews() {
+        checkbox = M13Checkbox(frame: checkView.frame)
+        checkbox?.stateChangeAnimation = .bounce(.fill)
+        checkbox?.tintColor = UIColor(red:0.15, green:0.68, blue:0.38, alpha:1.0)
+        checkbox?.isUserInteractionEnabled = false
+        checkbox.checkState = .checked
+        self.addSubview(checkbox!)
+    }
+    
     
 }
 
 class InterestsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource{
     
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet var actionView: UIView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
+        self.tableView.separatorStyle = .none
+        
+        actionView.layer.cornerRadius = 4.0
+        actionView.layer.masksToBounds = true
     }
     
-    var subjectList = ["Top Stories", "Trending Searches", "Business", "Technology", "Politics", "Sports", "Arts", "Travel"]
+    var subjectList = ["Wikipedia", "Reuters", "Sky News", "BBC", "The Wall Street Journal", "CBC", "Associated Press", "CBS News", "The Guardian", "Business Insider", "CNN", "CNBC", "MSNBC", "Euronews", "NPR"]
     let selection = UISelectionFeedbackGenerator()
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -48,11 +63,6 @@ class InterestsViewController: UIViewController, UITableViewDelegate, UITableVie
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! InterestsTableCell
         
         cell.subjectLabel.text = subjectList[indexPath.row]
-        cell.checkbox = M13Checkbox(frame: cell.checkView.frame)
-        cell.checkbox?.stateChangeAnimation = .bounce(.fill)
-        cell.checkbox?.tintColor = UIColor(red:0.15, green:0.68, blue:0.38, alpha:1.0)
-        cell.checkbox?.isUserInteractionEnabled = false
-        cell.addSubview(cell.checkbox!)
         
         cell.selectionStyle = .none
         
