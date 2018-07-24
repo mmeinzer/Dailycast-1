@@ -1,7 +1,15 @@
 # Dailycast
 </br></br>
-Very much in development
-</br></br>
-Currently pulls from top searched terms from Google Trends and displays them over 3 rotating images from google image search (previously GIFs from giphy, but ended up with inappropriate backgrounds for serious news, image analysis is too expensive)
-</br></br>
-Soon: Swipe up to read the article, integrate other sources of news
+Uses wikipedia as a source and presents the top news stories every day
+</br>
+<p float="left">
+<img src="images/1.jpg" width="30%" hspace="10">
+<img src="images/2.jpg" width="30%" hspace="10">
+<img src="images/3.jpg" width="30%" hspace="10">
+</p>
+<br>
+<p float="left">
+<img src="images/4.jpg" width="30%" hspace="10">
+<img src="images/5.jpg" width="30%" hspace="10">
+</p>
+
