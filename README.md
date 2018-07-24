@@ -1,5 +1,5 @@
 # Dailycast
-</br></br>
+</br>
 Uses wikipedia as a source and presents the top news stories every day
 </br>
 <p float="left">
