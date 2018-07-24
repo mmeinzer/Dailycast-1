@@ -381,7 +381,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
                 logoView.isHidden = true
                 topLabel.isHidden = true
             }
-            else if (launchedBefore > 3)  {
+            else if (launchedBefore > 1)  {
                 print("More than 3 times")
                 instructions.isHidden = true
                 logoView.isHidden = false
