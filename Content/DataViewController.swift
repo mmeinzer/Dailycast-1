@@ -152,16 +152,12 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         print("swipe")
 
         if(index != 0){
-            
-            //pop out for legal reasons :(
-            UIApplication.shared.open(articleURL!, options: [:], completionHandler: { (status) in
 
-            })
-//
-//                let svc = SFSafariViewController(url: articleURL!)
-//                svc.modalPresentationStyle = UIModalPresentationStyle.pageSheet
-//                self.present(svc, animated: true, completion: nil)
-                
+
+                let svc = SFSafariViewController(url: articleURL!)
+                svc.modalPresentationStyle = UIModalPresentationStyle.pageSheet
+                self.present(svc, animated: true, completion: nil)
+            
 
         }
     }
