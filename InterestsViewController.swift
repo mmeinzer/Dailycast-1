@@ -12,18 +12,20 @@ import M13Checkbox
 
  class InterestsTableCell: UITableViewCell{
     @IBOutlet weak var subjectLabel: UILabel!
-    @IBOutlet weak var checkView: UIView!
-    var checkbox: M13Checkbox!
+    @IBOutlet weak var checkView: M13Checkbox!
+    var unchecked = false
     
     override func layoutSubviews() {
-        checkbox = M13Checkbox(frame: checkView.frame)
-        checkbox?.stateChangeAnimation = .bounce(.fill)
-        checkbox?.tintColor = UIColor(red:0.15, green:0.68, blue:0.38, alpha:1.0)
-        checkbox?.isUserInteractionEnabled = false
-        checkbox.checkState = .checked
-        self.addSubview(checkbox!)
+        checkView.stateChangeAnimation = .bounce(.fill)
+        checkView.tintColor = UIColor(red:0.15, green:0.68, blue:0.38, alpha:1.0)
+        checkView.isUserInteractionEnabled = false
+        if(unchecked){
+            checkView.checkState = .unchecked
+        }
+        else{
+            checkView.checkState = .checked
+        }
     }
-    
     
 }
 
@@ -42,7 +44,7 @@ class InterestsViewController: UIViewController, UITableViewDelegate, UITableVie
         actionView.layer.masksToBounds = true
     }
     
-    var subjectList = ["Wikipedia", "Reuters", "Sky News", "BBC", "The Wall Street Journal", "CBC", "Associated Press", "CBS News", "The Guardian", "Business Insider", "CNN", "CNBC", "MSNBC", "Euronews", "NPR"]
+    var subjectList = ["Wikipedia", "Reuters", "The New York Times", "Sky News", "BBC", "The Wall Street Journal", "CBC", "Associated Press", "CBS News", "The Guardian", "Business Insider", "CNN", "CNBC", "MSNBC", "Fox News", "Euronews", "NPR", "ABC News", "Wikipedia", "Local News Sources"]
     let selection = UISelectionFeedbackGenerator()
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -55,14 +57,31 @@ class InterestsViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let cell = tableView.cellForRow(at: indexPath) as! InterestsTableCell
-        cell.checkbox?.toggleCheckState(true)
+        cell.checkView.toggleCheckState(true)
         selection.selectionChanged()
+    
+        if(cell.checkView.checkState == .unchecked){
+            UserDefaults.standard.set(true, forKey: "row" + String(describing: indexPath.row))
+        }
+        else{
+            UserDefaults.standard.removeObject(forKey: "row" + String(describing: indexPath.row))
+        }
+        
     }
     
+    
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: InterestsTableCell, forRowAt indexPath: IndexPath) {
+    }
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! InterestsTableCell
         
         cell.subjectLabel.text = subjectList[indexPath.row]
+        
+        if UserDefaults.standard.object(forKey: "row" + String(describing: indexPath.row)) != nil{
+            cell.unchecked = true
+        }
         
         cell.selectionStyle = .none
         

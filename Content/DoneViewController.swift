@@ -24,7 +24,7 @@ class DoneViewController: UIViewController, UIGestureRecognizerDelegate{
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         //setup
-        SwiftyRate.request(from: self, afterAppLaunches: 5)
+        SwiftyRate.request(from: self, afterAppLaunches: 3)
 
         let checkbox = M13Checkbox(frame: checkView.frame)
         checkbox.stateChangeAnimation = .stroke
@@ -35,7 +35,7 @@ class DoneViewController: UIViewController, UIGestureRecognizerDelegate{
         view.addSubview(checkbox)
         let success = UINotificationFeedbackGenerator()
 
-        yesterdayView.layer.cornerRadius = 2
+        yesterdayView.layer.cornerRadius = 4
         yesterdayView.layer.zPosition = 2
         let yesterdayTap = UITapGestureRecognizer(target: self, action: #selector(yesterdayTapped))
         yesterdayView.addGestureRecognizer(yesterdayTap)
@@ -68,7 +68,7 @@ class DoneViewController: UIViewController, UIGestureRecognizerDelegate{
         simpleFormatter.dateFormat = "MMM d"
         let buttonText = simpleFormatter.string(from: date!)
         
-        yesterdayLabel.text = "See news for " + buttonText
+        yesterdayLabel.text = "See news for " + buttonText + " 👉"
     }
     
     @objc func yesterdayTapped(){

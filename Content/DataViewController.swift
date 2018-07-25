@@ -49,6 +49,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var instructions: UILabel!
     
+    var feedbackGenerator: UISelectionFeedbackGenerator!
     var placeholderView: UIImageView!
     var imageView: UIImageView!
     var swipeUp: UISwipeGestureRecognizer!
@@ -136,7 +137,8 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         actionView.layer.masksToBounds = true
         actionView.isHidden = true
  
-
+        feedbackGenerator = UISelectionFeedbackGenerator()
+        feedbackGenerator.prepare()
         
         setBackground()
     }
@@ -146,6 +148,8 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         print(slug)
         print(slug.path)
         
+        feedbackGenerator.selectionChanged()
+
         let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + slug.path.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)!)!)
         self.present(svc, animated: true, completion: nil)
         
@@ -219,7 +223,6 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
     }
     
     @objc func topTapped(){
-        let feedbackGenerator = UISelectionFeedbackGenerator()
         feedbackGenerator.selectionChanged()
     
         let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + dataObject)!)
