@@ -62,7 +62,7 @@ class DoneViewController: UIViewController, UIGestureRecognizerDelegate{
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy_MMMM_dd"
+        formatter.dateFormat = "yyyy_MMMM_d"
         let date = formatter.date(from: globalDate)
         let simpleFormatter = DateFormatter()
         simpleFormatter.dateFormat = "MMM d"
@@ -74,7 +74,7 @@ class DoneViewController: UIViewController, UIGestureRecognizerDelegate{
     @objc func yesterdayTapped(){
         
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy_MMMM_dd"
+        formatter.dateFormat = "yyyy_MMMM_d"
         let date = formatter.date(from: globalDate)
         let previous = Calendar.current.date(byAdding: .day, value: -1, to: date!)
         globalDate = formatter.string(from: previous!)

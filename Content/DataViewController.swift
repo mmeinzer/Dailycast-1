@@ -189,7 +189,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
 
 
             let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy_MMMM_dd"
+            formatter.dateFormat = "yyyy_MMMM_d"
             let date = formatter.date(from: globalDate)
             
             let todaystring = formatter.string(from: nexttoday!)
@@ -360,7 +360,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
             }
             
             let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy_MMMM_dd"
+            dateFormatter.dateFormat = "yyyy_MMMM_d"
             let date = dateFormatter.date(from: globalDate)
             let next = Calendar.current.date(byAdding: .day, value: 1, to: date!)
 

@@ -44,7 +44,7 @@ class InterestsViewController: UIViewController, UITableViewDelegate, UITableVie
         actionView.layer.masksToBounds = true
     }
     
-    var subjectList = ["Wikipedia", "Reuters", "The New York Times", "Sky News", "BBC", "The Wall Street Journal", "CBC", "Associated Press", "CBS News", "The Guardian", "Business Insider", "CNN", "CNBC", "MSNBC", "Fox News", "Euronews", "NPR", "ABC News", "Wikipedia", "Local News Sources"]
+    var subjectList = ["Wikipedia", "Reuters", "The New York Times", "Sky News", "BBC", "The Wall Street Journal", "CBC", "Associated Press", "CBS News", "The Guardian", "Business Insider", "CNN", "CNBC", "MSNBC", "Fox News", "Euronews", "NPR", "ABC News", "The Telegraph", "Politico", "Local News Sources"]
     let selection = UISelectionFeedbackGenerator()
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -64,23 +64,27 @@ class InterestsViewController: UIViewController, UITableViewDelegate, UITableVie
             UserDefaults.standard.set(true, forKey: "row" + String(describing: indexPath.row))
         }
         else{
-            UserDefaults.standard.removeObject(forKey: "row" + String(describing: indexPath.row))
+            UserDefaults.standard.set(false, forKey: "row" + String(describing: indexPath.row))
         }
         
     }
     
-    
-    
-    func tableView(_ tableView: UITableView, willDisplay cell: InterestsTableCell, forRowAt indexPath: IndexPath) {
-    }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! InterestsTableCell
         
         cell.subjectLabel.text = subjectList[indexPath.row]
         
-        if UserDefaults.standard.object(forKey: "row" + String(describing: indexPath.row)) != nil{
-            cell.unchecked = true
+        if let cellbool = UserDefaults.standard.object(forKey: "row" + String(describing: indexPath.row)) as? Bool{
+            if(cellbool){
+                cell.unchecked = true
+            }
+            else{
+                cell.unchecked = false
+            }
+        }
+        else{
+            cell.unchecked = false
         }
         
         cell.selectionStyle = .none

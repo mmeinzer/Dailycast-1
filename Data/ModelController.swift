@@ -51,11 +51,12 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     var urls: [URL] = [URL(string: "http://google.com")!]
     var arrayLoaded = false
     var count = 0
-    
-
+    var disallowed: [String] = []
+    let sources = ["wikipedia", "reuters", "nytimes", "sky", "bbc", "wsj", "cbc", "ap", "cbsnews", "theguardian", "businessinsider", "cnn", "cnbc", "msnbc", "foxnews", "euronews", "npr", "abcnews", "telegraph", "politico", "Local News Sources"]
     
     override init() {
         super.init()
+        
         getHeadlines()
  
     }
@@ -66,7 +67,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         
         let date = Date()
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy_MMMM_dd"
+        formatter.dateFormat = "yyyy_MMMM_d"
         print("date is \(globalDate)")
         var result = globalDate
         if(globalDate == ""){
@@ -76,6 +77,18 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
             globalDate = formatter.string(from: previous!)
         }
 //       result = "2018_May_16" //THIS IS FOR DEBUG
+        
+        var i = 0
+        for element in sources{
+            if let cellbool = UserDefaults.standard.object(forKey: "row" + String(describing: i)) as? Bool{
+                if(cellbool){
+                    disallowed.append(element)
+                }
+            }
+            i += 1
+        }
+        print("Disallowed")
+        print(disallowed)
         
         Alamofire.request("https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=text&page=Portal:Current_events/" + result).response{ response in
             if let data = response.data{
@@ -97,38 +110,52 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
                         let li: Elements = try doc.select("li")
                         
                         let sublist = try li.select("li").array()
-                        
                         for element in sublist{
+                            var skip = false
                             let subelements = try element.select("ul").array().count
                             if(subelements == 0){
                                 print(try element.text())
                                 print("has no subelememnts")
-                                self.headlines.append(try element.html())
-                                let lasturl = try element.select("a").array().last?.attr("href").asURL()
-                                self.urls.append(lasturl!)
-                                
-                                if(self.topics.count < self.headlines.count){
-                                    let topic = try element.select("a").first()?.attr("href")
-                                    if(topic?.contains("wiki"))!{
-                                        self.topics.append(topic!)
+                                let lasturl = try element.select("a").array().last?.attr("href").asURL() //check source here
+                                for element in self.disallowed{
+                                    print(element)
+                                    print(lasturl)
+                                    if (lasturl?.host != nil && (lasturl?.host?.contains(element))!){
+                                        print("skipping")
+                                        skip=true
                                     }
-                                    else{
-                                        self.topics.append("News")
+                                }
+                                if(!skip){
+                                    print("not skipping")
+                                    self.headlines.append(try element.html())
+
+                                    self.urls.append(lasturl!)
+                                    print(lasturl)
+                                    if(self.topics.count < self.headlines.count){
+                                        let topic = try element.select("a").first()?.attr("href")
+                                        if(topic?.contains("wiki"))!{
+                                            self.topics.append(topic!)
+                                        }
+                                        else{
+                                            self.topics.append("News")
+                                        }
                                     }
                                 }
                             }
                             else{
                                 print("at else")
-                                if(self.topics.count < self.headlines.count + 1){
-                                    let topic = try element.select("a").first()?.attr("href")
-                                    if(topic?.contains("wiki"))!{
-                                        self.topics.append(topic!)
-                                    }
-                                    else{
-                                        self.topics.append("News")
+                                if(!skip){
+                                    print("not skipping")
+                                    if(self.topics.count < self.headlines.count + 1){
+                                        let topic = try element.select("a").first()?.attr("href")
+                                        if(topic?.contains("wiki"))!{
+                                            self.topics.append(topic!)
+                                        }
+                                        else{
+                                            self.topics.append("News")
+                                        }
                                     }
                                 }
-                                
                             }
                         }
                         print("topic array:")
@@ -312,7 +339,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
             
             let date = Date()
             let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy_MMMM_dd"
+            formatter.dateFormat = "yyyy_MMMM_d"
             let previous = Calendar.current.date(byAdding: .day, value: -1, to: date)
             let result = formatter.string(from: previous!)
             if(result == globalDate){
