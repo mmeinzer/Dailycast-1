@@ -66,7 +66,8 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-                
+        
+        
         let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.regular)
         blurEffectView = UIVisualEffectView(effect: blurEffect)
         blurEffectView.frame = view.bounds
@@ -376,10 +377,10 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
             placeholderView.isHidden = true
             
             
-            let launchedBefore = UserDefaults.standard.integer(forKey: "launchedBefore")
+            let launchedBefore = UserDefaults.standard.integer(forKey: "launchedBeforeNew")
             if(launchedBefore == nil){
                 print("First launch, setting UserDefault.")
-                UserDefaults.standard.set(0, forKey: "launchedBefore")
+                UserDefaults.standard.set(0, forKey: "launchedBeforeNew")
                 instructions.isHidden = false
                 logoView.isHidden = true
                 topLabel.isHidden = true
@@ -389,10 +390,10 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
                 instructions.isHidden = true
                 logoView.isHidden = false
                 topLabel.isHidden = false
-                UserDefaults.standard.set(launchedBefore + 1, forKey: "launchedBefore")
+                UserDefaults.standard.set(launchedBefore + 1, forKey: "launchedBeforeNew")
             } else {
                 print("Incrementing launch userDefault.")
-                UserDefaults.standard.set(launchedBefore + 1, forKey: "launchedBefore")
+                UserDefaults.standard.set(launchedBefore + 1, forKey: "launchedBeforeNew")
                 instructions.isHidden = false
                 logoView.isHidden = true
                 topLabel.isHidden = true

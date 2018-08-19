@@ -58,6 +58,7 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
         super.init()
         
         getHeadlines()
+
  
     }
     
@@ -203,7 +204,8 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     }
     
     func getPageImage(title: String){
-        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=pageimages&format=json&piprop=original").response{ response in
+        let newtitle = title.split(separator: "#")[0]
+        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + newtitle + "&prop=pageimages&format=json&piprop=original").response{ response in
             if let data = response.data{
                 let json = JSON(data)
                 let dict = json["query"]["pages"].dictionaryValue

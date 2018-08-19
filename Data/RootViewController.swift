@@ -25,6 +25,7 @@ class RootViewController: UIViewController, UIPageViewControllerDelegate {
 
         
         let startingViewController: DataViewController = self.modelController.viewControllerAtIndex(0, activityCleared: false, storyboard: self.storyboard!)!
+
         let viewControllers = [startingViewController]
         self.pageViewController!.setViewControllers(viewControllers, direction: .forward, animated: false, completion: {done in })
 
@@ -45,8 +46,11 @@ class RootViewController: UIViewController, UIPageViewControllerDelegate {
         let nc = NotificationCenter.default
         nc.addObserver(self, selector: #selector(resetCache), name: Notification.Name("resetCache"), object: nil)
         
-        if let launchedBefore = UserDefaults.standard.object(forKey: "launchedBefore"){
+        if let launchedBefore = UserDefaults.standard.object(forKey: "launchedBeforeNew"){
             print("launched: \(launchedBefore)")
+            if((launchedBefore as! Int) < 2){
+                pageViewController?.goToPreviousPage()
+            }
         }
         else{
             print("moving")
