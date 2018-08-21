@@ -8,7 +8,7 @@
 
 import UIKit
 
-
+import UserNotifications
 
 class RootViewController: UIViewController, UIPageViewControllerDelegate {
 
@@ -55,6 +55,23 @@ class RootViewController: UIViewController, UIPageViewControllerDelegate {
         else{
             print("moving")
             pageViewController?.goToPreviousPage()
+        }
+        
+        let center = UNUserNotificationCenter.current()
+        
+        center.removeAllPendingNotificationRequests()
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Read Today's News"
+        content.body = "Catch up on the news for today"
+        content.sound = UNNotificationSound.default()
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 86400,
+                                                        repeats: false)
+        let request = UNNotificationRequest(identifier: "ContentIdentifier", content: content, trigger: trigger)
+        center.add(request) { (error) in
+            if error != nil {
+                print("error \(String(describing: error))")
+            }
         }
 
         

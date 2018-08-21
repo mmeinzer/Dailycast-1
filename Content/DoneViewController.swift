@@ -48,6 +48,9 @@ class DoneViewController: UIViewController, UIGestureRecognizerDelegate{
         
         checkbox.toggleCheckState(true)
         success.notificationOccurred(.success)
+        
+
+        
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {

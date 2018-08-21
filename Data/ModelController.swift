@@ -234,7 +234,8 @@ class ModelController: NSObject, UIPageViewControllerDataSource {
     }
     
     func findImageOnPage(title: String){
-        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + title + "&prop=images&redirects&format=json").response{ response in
+        let cleantitle = title.split(separator: "#")[0]
+        Alamofire.request("https://en.wikipedia.org/w/api.php?action=query&titles=" + cleantitle + "&prop=images&redirects&format=json").response{ response in
             if let data = response.data{
                 let json = JSON(data)
                 let dict = json["query"]["pages"].dictionaryValue

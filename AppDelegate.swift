@@ -8,6 +8,8 @@
 
 import UIKit
 import Firebase
+import UserNotifications
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -19,7 +21,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         UIApplication.shared.statusBarStyle = .lightContent
         FirebaseApp.configure()
-
+        
+        let center = UNUserNotificationCenter.current()
+        let options: UNAuthorizationOptions = [.badge, .alert, .sound];
+        center.requestAuthorization(options: options) {
+            (granted, error) in
+            if !granted {
+                print("Something went wrong")
+            }
+        }
+        
+        
         return true
     }
     
