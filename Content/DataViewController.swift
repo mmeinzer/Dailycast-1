@@ -57,7 +57,6 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
     var spinner: UIActivityIndicatorView!
     var linkArray: [URL] = []
     var backgroundAttempt = 0
-    var blurEffectView: UIVisualEffectView!
     @IBOutlet weak var logoView: UIImageView!
     @IBOutlet weak var headlineHeight: NSLayoutConstraint!
     
@@ -67,14 +66,6 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        
-        let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.regular)
-        blurEffectView = UIVisualEffectView(effect: blurEffect)
-        blurEffectView.frame = view.bounds
-        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        blurEffectView.layer.zPosition = 0
-        view.addSubview(blurEffectView)
-        blurEffectView.isHidden = true
 
         headlineView.layer.zPosition = 2
         headlineView.isScrollEnabled = false
@@ -110,9 +101,9 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         let nc = NotificationCenter.default
         nc.addObserver(self, selector: #selector(clearActivity), name: Notification.Name("resetCache"), object: nil)
         
-        bgView.layer.cornerRadius = 4
+//        bgView.layer.cornerRadius = 4
         bgView.layer.zPosition = 2
-        topView.layer.cornerRadius = 2
+//        topView.layer.cornerRadius = 2
         topView.layer.zPosition = 2
         let topTap = UITapGestureRecognizer(target: self, action: #selector(topTapped))
         topView.addGestureRecognizer(topTap)
@@ -150,8 +141,9 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         print(slug.path)
         
         feedbackGenerator.selectionChanged()
-
-        let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + slug.path.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)!)!)
+        let config = SFSafariViewController.Configuration()
+        config.entersReaderIfAvailable = true
+        let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + slug.path.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)!)!, configuration: config)
         self.present(svc, animated: true, completion: nil)
         
         return true
@@ -162,17 +154,11 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         print("swipe")
 
         if(index != 0){
-            
-//            //pop out for legal reasons :(
-//            UIApplication.shared.open(articleURL!, options: [:], completionHandler: { (status) in
-//
-//            })
-////
-            let svc = SFSafariViewController(url: articleURL!)
+            let config = SFSafariViewController.Configuration()
+            config.entersReaderIfAvailable = true
+            let svc = SFSafariViewController(url: articleURL!, configuration: config)
             svc.modalPresentationStyle = UIModalPresentationStyle.pageSheet
             self.present(svc, animated: true, completion: nil)
-            
-
         }
     }
     
@@ -226,7 +212,10 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
     @objc func topTapped(){
         feedbackGenerator.selectionChanged()
     
-        let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + dataObject)!)
+        let config = SFSafariViewController.Configuration()
+        config.entersReaderIfAvailable = true
+        
+        let svc = SFSafariViewController(url: URL(string: "https://en.wikipedia.org" + dataObject)!, configuration: config)
         
         UIApplication.shared.statusBarStyle = UIStatusBarStyle.default
         svc.setNeedsStatusBarAppearanceUpdate()
@@ -249,6 +238,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         let noExt = headlineSnippet.components(separatedBy: "<a rel=\"nofollow\" class=\"external text\"")[0]
         let attrs = NSMutableAttributedString(html: noExt)
         attrs?.addAttribute(.font, value: UIFont(name: "Avenir", size: 20.0)!, range: NSRange(location:0,length:(attrs?.length)!))
+        attrs?.addAttribute(.foregroundColor, value: UIColor.white, range:NSRange(location:0,length:(attrs?.length)!))
 
         self.headlineView.attributedText = attrs
         
@@ -274,13 +264,13 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         self.headlineView.attributedText = newString
         
         let linkAttributes: [String : Any] = [
-            NSAttributedStringKey.foregroundColor.rawValue: UIColor.black,
+            NSAttributedStringKey.foregroundColor.rawValue: UIColor.white,
             NSAttributedStringKey.underlineColor.rawValue: UIColor.clear]
         self.headlineView.linkTextAttributes = linkAttributes
         
         
         
-        while(headlineView.contentSize.height > 146 && font > 15){
+        while(headlineView.contentSize.height > 252 && font > 15){
             font -= 1
             let resizedText = NSMutableAttributedString(attributedString: headlineView.attributedText)
             resizedText.removeAttribute(NSAttributedStringKey.font, range: NSRange(0..<resizedText.length))
@@ -301,14 +291,14 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         }
         
         if(headlineView.contentSize.height > headlineHeight.constant){
-            while(headlineView.contentSize.height + 12 > headlineHeight.constant){
+            while(headlineView.contentSize.height + 50 > headlineHeight.constant){
                 print("increasing headline size")
                 headlineHeight.constant += 2
                 self.view.layoutIfNeeded()
             }
         }
         else{
-            while(headlineView.contentSize.height + 12 < headlineHeight.constant){
+            while(headlineView.contentSize.height + 50 < headlineHeight.constant){
                 print("decreasing headline size")
                 headlineHeight.constant -= 1
                 self.view.layoutIfNeeded()
@@ -350,16 +340,16 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
             arrowImage.isHidden = true
             topView.isHidden = true
             
-            if(!activityCleared){
-                spinner.isHidden = false
-                spinner.center = CGPoint(x: self.view.frame.midX, y: self.view.frame.maxY - 42)
-                spinner.startAnimating()
-                self.view.addSubview(spinner)
-            }
-            else{
-                clearActivity()
-            }
-            
+//            if(!activityCleared){
+//                spinner.isHidden = false
+//                spinner.center = CGPoint(x: self.view.frame.midX, y: self.view.frame.maxY - 42)
+//                spinner.startAnimating()
+//                self.view.addSubview(spinner)
+//            }
+//            else{
+//                clearActivity()
+//            }
+            clearActivity()
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy_MMMM_d"
             let date = dateFormatter.date(from: globalDate)
@@ -453,7 +443,13 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
                         activity.removeFromSuperview()
                         self.placeholderView.isHidden = true
                         self.view.backgroundColor = UIColor(patternImage: image!)
-                        self.blurEffectView.isHidden = false
+                        
+                        let gradient: CAGradientLayer = CAGradientLayer()
+                        
+                        gradient.colors = [UIColor.clear.cgColor, UIColor.black.cgColor]
+                        gradient.locations = [0.0 , 1.0]
+                        gradient.frame = CGRect(x: 0.0, y: 0.0, width: self.view.frame.size.width, height: self.view.frame.size.height)
+                        self.imageView.layer.insertSublayer(gradient, at: 0)
 
                     }
                     else{
@@ -467,7 +463,6 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
             }
 
         }
-        view.sendSubview(toBack: blurEffectView)
     }
     
     @objc func logoTap(sender: UITapGestureRecognizer){
