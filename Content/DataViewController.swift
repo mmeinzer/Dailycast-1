@@ -103,7 +103,7 @@ class DataViewController: UIViewController, UITextViewDelegate, UIGestureRecogni
         
 //        bgView.layer.cornerRadius = 4
         bgView.layer.zPosition = 2
-//        topView.layer.cornerRadius = 2
+        topView.layer.cornerRadius = 2
         topView.layer.zPosition = 2
         let topTap = UITapGestureRecognizer(target: self, action: #selector(topTapped))
         topView.addGestureRecognizer(topTap)
